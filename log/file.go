@@ -5,11 +5,8 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"reflect"
-	"runtime"
 	"sync"
 	"sync/atomic"
-	"syscall"
 	"time"
 )
 
@@ -31,6 +28,8 @@ type FileObject struct {
 	compress    Compress
 }
 
+// NewConsoleObject is an initialization constructor
+// that returns a FileObject pointer object.
 func NewFileObject(path string, flag,perm int, rotate,compress bool, opts ...RotateOption) *FileObject {
 	option := default_rotate
 	for _, o := range opts {
@@ -50,9 +49,9 @@ func NewFileObject(path string, flag,perm int, rotate,compress bool, opts ...Rot
     	panic(err)
 	}
     obj.rotate = option
-    obj.compress = Compress{
-    	taskQue: make(chan task, 20),
-	}
+
+    obj.compress = Compress{}
+    obj.compress.taskQueue = make(chan task, 20)
     go obj.compress.TaskListen()
 
     // set file initialization information
@@ -122,16 +121,6 @@ func (f *FileObject) InitLine() int64 {
 	return line
 }
 
-func (f *FileObject) InitCreateTime(sys interface{}) int64 {
-	if runtime.GOOS == "windows" {
-		fileSys := sys.(*syscall.Win32FileAttributeData)
-		nanoseconds := fileSys.CreationTime.Nanoseconds()
-		return nanoseconds / 1e9
-	} else {
-		return reflect.ValueOf(sys).Elem().FieldByName("Ctim").Field(0).Int()
-	}
-}
-
 // Writing method is used to write a byte array to file.
 // Before writing, you must judge whether you want to rorate.
 func (f *FileObject) Writing(p []byte) error {
@@ -160,7 +149,7 @@ func (f *FileObject) Writing(p []byte) error {
 			f.Unlock()
 		}
 
-		// cross-day rotation
+		// rotate by every morning at 00:00:00
 		if f.RotateByDaily() {
 			f.Lock()
 			f.rotate.currentTime = time.Now()
@@ -197,4 +186,5 @@ func (f *FileObject) Flush() {
 // Close file handle resource.
 func (f *FileObject) Close() {
 	f.file.Close()
+	//f.compress.Close()
 }

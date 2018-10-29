@@ -1,6 +1,8 @@
 package main
 
-import "mant/log"
+import (
+	"mant/log"
+)
 
 func main() {
 	logger := log.NewLogger(3, log.LEVELERROR)

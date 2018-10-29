@@ -1,6 +1,7 @@
 package log
 
 import (
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -84,9 +85,8 @@ func (f *FileObject) DoRotate() error {
 		splice := "." + format + "_" + strconv.Itoa(f.rotate.count) + ".zip"
 		zipName := strings.Replace(f.path, filepath.Ext(f.path), splice, 1)
 
-		//// compress old log
-		//go f.DoCompress(zipName, path.Dir(f.path), []string{filepath.Base(fName)})
-		f.compress.taskQue <- task(zipName, path.Dir(f.path), []string{filepath.Base(fName)})
+		// compressed function write queue
+		f.compress.taskQueue <- f.compress.DoCompress(zipName, path.Dir(f.path), []string{filepath.Base(fName)})
 	}
 
 	return nil
@@ -102,13 +102,9 @@ func (f *FileObject) RotateBySizes() bool {
 
 func (f *FileObject) RotateByDaily() bool {
 	t := f.rotate.currentTime
-	t_ := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location()).AddDate(0, 0, 1)
+	t_ := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location()).AddDate(0, 0, 2)
 	tm := t_.Unix()
 
+	fmt.Println(time.Now().Unix(), tm)
 	return time.Now().Unix() > tm
 }
-
-//func (f *FileObject) RotateByDays() bool {
-//	//return f.rotate.
-//	return false
-//}
