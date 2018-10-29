@@ -1,6 +1,7 @@
 package log
 
 import (
+	"fmt"
 	"mant/log/archiver"
 	"os"
 )
@@ -10,6 +11,9 @@ type task func() error
 type Compress struct {
 	// log compression asynchronous queue
 	taskQueue  chan task
+
+	//
+	taskStop chan bool
 }
 
 // Closures implement asynchronous compression.
@@ -28,12 +32,12 @@ func (c Compress) DoCompress(zipName string, path string, sources []string) task
 
 // Monitor log compression events or context signals.
 func (c Compress) TaskListen() {
-	for t := range c.taskQueue {
-		t()
+	for {
+		select {
+		case fn := <- c.taskQueue:
+			if err := fn(); err != nil {
+				fmt.Fprintln(os.Stderr, "log compression error: ", err)
+			}
+		}
 	}
-}
-
-// Turn off asynchronous compression chan.
-func (c Compress) Close() {
-	close(c.taskQueue)
 }

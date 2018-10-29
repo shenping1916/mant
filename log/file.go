@@ -37,7 +37,7 @@ func NewFileObject(path string, flag,perm int, rotate,compress bool, opts ...Rot
 	}
 
 	var err error
-    obj := new(FileObject)
+	obj := new(FileObject)
 	obj.path = path
 	obj.flag = flag
 	obj.perm = os.FileMode(perm)
@@ -47,17 +47,18 @@ func NewFileObject(path string, flag,perm int, rotate,compress bool, opts ...Rot
     obj.file, err = obj.Open()
     if err != nil {
     	panic(err)
-	}
+    }
     obj.rotate = option
 
     obj.compress = Compress{}
     obj.compress.taskQueue = make(chan task, 20)
+    obj.compress.taskStop = make(chan bool, 1)
     go obj.compress.TaskListen()
 
     // set file initialization information
     obj.InitStat()
 
-	return obj
+    return obj
 }
 
 // Open is used to open a log file and return file handles and errors.
@@ -68,7 +69,9 @@ func (f *FileObject) Open() (*os.File, error) {
 		path_ := path.Dir(f.path)
 		_, err := os.Stat(path_)
 		if err != nil && os.IsNotExist(err) {
-			f.Create(path_)
+			if err := f.Create(path_); err != nil {
+				return nil, err
+			}
 		}
 
 		// open
@@ -83,8 +86,8 @@ func (f *FileObject) Open() (*os.File, error) {
 }
 
 // Create is used to create a log directory.
-func (f *FileObject) Create(path string) {
-	os.MkdirAll(path, f.perm)
+func (f *FileObject) Create(path string) error {
+	return os.MkdirAll(path, f.perm)
 }
 
 // InitStat is used to get the initial information of the file,
@@ -134,7 +137,7 @@ func (f *FileObject) Writing(p []byte) error {
 			f.Lock()
 			f.rotate.currentLine = 0
 			if err := f.DoRotate(); err != nil {
-				fmt.Fprintln(os.Stderr, err)
+				return err
 			}
 			f.Unlock()
 		}
@@ -144,7 +147,7 @@ func (f *FileObject) Writing(p []byte) error {
 			f.Lock()
 			f.rotate.currentSize = 0
 			if err := f.DoRotate(); err != nil {
-				fmt.Fprintln(os.Stderr, err)
+				return err
 			}
 			f.Unlock()
 		}
@@ -154,7 +157,7 @@ func (f *FileObject) Writing(p []byte) error {
 			f.Lock()
 			f.rotate.currentTime = time.Now()
 			if err := f.DoRotate(); err != nil {
-				fmt.Fprintln(os.Stderr, err)
+				return err
 			}
 			f.Unlock()
 		}
@@ -186,5 +189,5 @@ func (f *FileObject) Flush() {
 // Close file handle resource.
 func (f *FileObject) Close() {
 	f.file.Close()
-	//f.compress.Close()
+	f.compress.taskStop <- true
 }

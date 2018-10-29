@@ -10,7 +10,7 @@ func TestNewFileObject(t *testing.T) {
 	logger.SetAsynChronous()
 	logger.SetOutput(FILE)
 
-	for i := 0; i < 2000; i++ {
+	for i := 0; i < 1000; i++ {
 		logger.Info(i)
 		logger.Infof("i: %d", i)
 	}

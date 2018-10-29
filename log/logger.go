@@ -56,7 +56,7 @@ func NewLogger(depth int, level ...Level) *Logger {
 	// Initialize byte buffer
 	logger.buf = new(bytes.Buffer)
 	// Preset buffer size to prevent memory redistribution caused by capacity expansion.
-	//logger.buf.Grow(1024)
+	logger.buf.Grow(1024)
 
 	if len(level) > 0 {
 		l := level[0]
@@ -166,7 +166,8 @@ func (l *Logger) SetOutput(adapters ...string) {
 			c := NewConsoleObject(os.Stderr)
 			l.writer = append(l.writer, c)
 		case FILE:
-			path := "/Users/shenping/project/golang/src/mant/a.log"
+			//path := "/Users/shenping/project/golang/src/mant/a.log"
+			path := "E:/project/golang/src/mant/a.log"
 			f := NewFileObject(path, Flag, Perm, true, true, WithMaxLinesOption(100), WithMaxSizeOption(100<<10))
 			l.writer = append(l.writer, f)
 		case MULTIFILE:
@@ -311,7 +312,7 @@ func (l *Logger) CallDepth() (file_ string, line_ int) {
 // their Writing method to write all assembled log bytes.
 func (l *Logger) WriteTo(p []byte) {
 	if len(l.writer) == 0 {
-		fmt.Fprintln(os.Stderr, ERRWRITERS)
+		panic(ERRWRITERS)
 		return
 	}
 
