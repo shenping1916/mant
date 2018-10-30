@@ -1,6 +1,7 @@
 package log
 
 import (
+	"context"
 	"fmt"
 	"mant/log/archiver"
 	"os"
@@ -9,11 +10,9 @@ import (
 type task func() error
 
 type Compress struct {
-	// log compression asynchronous queue
 	taskQueue  chan task
-
-	//
-	taskStop chan bool
+	ctx        context.Context
+	cancel     context.CancelFunc
 }
 
 // Closures implement asynchronous compression.

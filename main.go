@@ -1,10 +1,17 @@
 package main
 
 import (
+	"fmt"
 	"mant/log"
+	"time"
 )
 
 func main() {
+	t := time.Now()
+	t_ := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location()).AddDate(0, 0, 1)
+	tm := t_.Unix()
+	fmt.Println(tm)
+
 	logger := log.NewLogger(3, log.LEVELERROR)
 	logger.SetFlag()
 	logger.SetLonged()

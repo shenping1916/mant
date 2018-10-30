@@ -61,7 +61,7 @@ func (f *FileObject) DoRotate() error {
 	f.rotate.count++
 
 	// close old file handle
-	f.Close()
+	f.file.Close()
 	f.file = nil
 
 	// time format
@@ -84,10 +84,10 @@ func (f *FileObject) DoRotate() error {
 		splice := "." + format + "_" + strconv.Itoa(f.rotate.count) + ".zip"
 		zipName := strings.Replace(f.path, filepath.Ext(f.path), splice, 1)
 
-		ok := <- f.compress.taskStop
-		if !ok {
-			// compressed function write queue
-			f.compress.taskQueue <- f.compress.DoCompress(zipName, path.Dir(f.path), []string{filepath.Base(fName)})
+		select {
+		case <- f.compress.ctx.Done():
+			return nil
+		case f.compress.taskQueue <- f.compress.DoCompress(zipName, path.Dir(f.path), []string{filepath.Base(fName)}):
 		}
 	}
 

@@ -166,8 +166,8 @@ func (l *Logger) SetOutput(adapters ...string) {
 			c := NewConsoleObject(os.Stderr)
 			l.writer = append(l.writer, c)
 		case FILE:
-			//path := "/Users/shenping/project/golang/src/mant/a.log"
-			path := "E:/project/golang/src/mant/a.log"
+			path := "/Users/shenping/project/golang/src/mant/a.log"
+			//path := "E:/project/golang/src/mant/a.log"
 			f := NewFileObject(path, Flag, Perm, true, true, WithMaxLinesOption(100), WithMaxSizeOption(100<<10))
 			l.writer = append(l.writer, f)
 		case MULTIFILE:

@@ -2,6 +2,7 @@ package log
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"os"
 	"path"
@@ -11,7 +12,7 @@ import (
 )
 
 var (
-	Flag = os.O_WRONLY|os.O_APPEND|os.O_CREATE
+	Flag = os.O_RDWR|os.O_APPEND|os.O_CREATE
 	Perm = 0660
 )
 
@@ -52,7 +53,7 @@ func NewFileObject(path string, flag,perm int, rotate,compress bool, opts ...Rot
 
     obj.compress = Compress{}
     obj.compress.taskQueue = make(chan task, 20)
-    obj.compress.taskStop = make(chan bool, 1)
+    obj.compress.ctx, obj.compress.cancel = context.WithCancel(context.Background())
     go obj.compress.TaskListen()
 
     // set file initialization information
@@ -116,9 +117,9 @@ func (f *FileObject) InitLine() int64 {
 		line++
 	}
 
-	//if err := scanner.Err(); err != nil {
-	//	fmt.Fprintln(os.Stderr, "File read error: ", err)
-	//}
+	if err := scanner.Err(); err != nil {
+		fmt.Fprintln(os.Stderr, "File read error: ", err)
+	}
 	f.RUnlock()
 
 	return line
@@ -189,5 +190,5 @@ func (f *FileObject) Flush() {
 // Close file handle resource.
 func (f *FileObject) Close() {
 	f.file.Close()
-	f.compress.taskStop <- true
+	f.compress.cancel()
 }
