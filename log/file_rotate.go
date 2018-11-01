@@ -30,7 +30,7 @@ type Rotate struct {
 	currentSize int64
 
 	// Rotate by max days
-	maxKeepDays int64
+	maxKeepDays int
 	currentTime time.Time
 }
 
@@ -48,7 +48,7 @@ func WithMaxSizeOption(s int64) RotateOption {
 	}
 }
 
-func WithMaxDaysOption(d int64) RotateOption {
+func WithMaxDaysOption(d int) RotateOption {
 	return func(o *Rotate) {
 		o.maxKeepDays = d
 	}
@@ -65,7 +65,7 @@ func (f *FileObject) DoRotate() error {
 	f.file = nil
 
 	// time format
-	format := time.Now().Format("20060102")
+	format := time.Now().Format("20060102_150405")
 
 	// Rename the log that will be rotated
 	// For example: a.log will be renamed to a.log.1

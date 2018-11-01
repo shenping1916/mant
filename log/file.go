@@ -29,9 +29,13 @@ type FileObject struct {
 	compress    Compress
 }
 
+func init()  {
+
+}
+
 // NewConsoleObject is an initialization constructor
 // that returns a FileObject pointer object.
-func NewFileObject(path string, flag,perm int, rotate,compress bool, opts ...RotateOption) *FileObject {
+func NewFileObject(path string, rotate,compress bool, opts ...RotateOption) *FileObject {
 	option := default_rotate
 	for _, o := range opts {
 		o(&option)
@@ -40,8 +44,8 @@ func NewFileObject(path string, flag,perm int, rotate,compress bool, opts ...Rot
 	var err error
 	obj := new(FileObject)
 	obj.path = path
-	obj.flag = flag
-	obj.perm = os.FileMode(perm)
+	obj.flag = Flag
+	obj.perm = os.FileMode(Perm)
 	obj.isRotate = rotate
 	obj.isCompress = compress
 

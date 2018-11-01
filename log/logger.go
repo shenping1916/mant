@@ -8,7 +8,6 @@ import (
 	"path"
 	"runtime"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 )
@@ -57,6 +56,9 @@ func NewLogger(depth int, level ...Level) *Logger {
 	logger.buf = new(bytes.Buffer)
 	// Preset buffer size to prevent memory redistribution caused by capacity expansion.
 	logger.buf.Grow(1024)
+
+	// Initialize writer
+	logger.writer = make([]Writer, 0, 10)
 
 	if len(level) > 0 {
 		l := level[0]
@@ -155,24 +157,50 @@ func (l *Logger) SetAsynChronous(msgLen ...int) {
 
 // Setoutput is used to set the log output to any destination
 // that implements the io.writer method.
-func (l *Logger) SetOutput(adapters ...string) {
+func (l *Logger) SetOutput(adapter string, arg ...map[string]interface{}) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	for _, adapter := range adapters {
-		switch strings.ToLower(adapter) {
-		case CONN:
-		case CONSOLE:
-			c := NewConsoleObject(os.Stderr)
-			l.writer = append(l.writer, c)
-		case FILE:
-			path := "/Users/shenping/project/golang/src/mant/a.log"
-			//path := "E:/project/golang/src/mant/a.log"
-			f := NewFileObject(path, Flag, Perm, true, true, WithMaxLinesOption(100), WithMaxSizeOption(100<<10))
+	switch adapter {
+	case CONN:
+	case CONSOLE:
+		c := NewConsoleObject()
+		l.writer = append(l.writer, c)
+	case FILE:
+		if len(arg) > 0 {
+			var tmp struct{
+				path        string
+				isRotate    bool
+				isCompress  bool
+				maxLines    int64
+				maxSize     int64
+				maxKeepDays int
+			}
+
+			for key, value := range arg[0] {
+				switch key {
+				case "path":
+					tmp.path = value.(string)
+				case "rotate":
+					tmp.isRotate = value.(bool)
+				case "compress":
+					tmp.isCompress = value.(bool)
+				case "maxlines":
+					tmp.maxLines = value.(int64)
+				case "maxsize":
+					tmp.maxSize = l.MBtoBytes(value.(int64))
+				case "maxkeepdays":
+					tmp.maxKeepDays = value.(int)
+				}
+			}
+
+			f := NewFileObject(tmp.path, tmp.isRotate, tmp.isCompress, WithMaxLinesOption(tmp.maxLines), WithMaxSizeOption(tmp.maxSize), WithMaxDaysOption(tmp.maxKeepDays))
 			l.writer = append(l.writer, f)
-		case MULTIFILE:
-		case SYSLOG:
+		} else {
+			return
 		}
+	case MULTIFILE:
+	case SYSLOG:
 	}
 }
 

@@ -2,17 +2,20 @@ package log
 
 import (
 	"io"
+	"os"
+	"sync"
 )
 
 type ConsoleObject struct {
+	mu sync.Mutex
 	w  io.Writer
 }
 
 // NewConsoleObject is an initialization constructor
 // that returns a ConsoleObject pointer object.
-func NewConsoleObject(w io.Writer) *ConsoleObject {
+func NewConsoleObject() *ConsoleObject {
 	return &ConsoleObject{
-		w: w,
+		w: os.Stderr,
 	}
 }
 
@@ -23,10 +26,12 @@ func (c *ConsoleObject) Writing(p []byte) error {
 		return nil
 	}
 
+	c.mu.Lock()
 	_, err := c.w.Write(p)
 	if err != nil {
 		return err
 	}
+	c.mu.Unlock()
 
 	return nil
 }

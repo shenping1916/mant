@@ -8,9 +8,16 @@ func TestNewFileObject(t *testing.T) {
 	logger := NewLogger(3, LEVELDEBUG)
 	logger.SetFlag()
 	logger.SetAsynChronous()
-	logger.SetOutput(FILE)
+	logger.SetOutput(FILE, map[string]interface{}{
+		"path": "/Users/shenping/project/golang/src/mant/a.log",
+		"rotate": true,
+		"compress": true,
+		"maxlines": int64(1000),
+		"maxsize": int64(100),
+		"maxkeepdays": 30,
+	})
 
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < 10000; i++ {
 		logger.Info(i)
 		logger.Infof("i: %d", i)
 	}
@@ -29,7 +36,7 @@ func BenchmarkNewFileObject(b *testing.B) {
 	logger.SetOutput(FILE)
 
 	b.StartTimer()
-	for i := 0; i < b.N; i++ {
+	for i := 0; i <= b.N; i++ {
 		logger.Debug("debug")
 		logger.Debugf("debugf: %d", 1)
 
