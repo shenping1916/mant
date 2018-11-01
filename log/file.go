@@ -18,24 +18,21 @@ var (
 
 type FileObject struct {
 	sync.RWMutex
-	file        *os.File
-	path        string
-	flag        int
-	perm        os.FileMode
+	file          *os.File
+	path          string
+	flag          int
+	perm          os.FileMode
 
-	isRotate    bool
-	isCompress  bool
-	rotate      Rotate
-	compress    Compress
-}
-
-func init()  {
-
+	isRotate      bool
+	isRotateDaily bool
+	isCompress    bool
+	rotate        Rotate
+	compress      Compress
 }
 
 // NewConsoleObject is an initialization constructor
 // that returns a FileObject pointer object.
-func NewFileObject(path string, rotate,compress bool, opts ...RotateOption) *FileObject {
+func NewFileObject(path string, rotate,compress,daily bool, opts ...RotateOption) *FileObject {
 	option := default_rotate
 	for _, o := range opts {
 		o(&option)
@@ -47,6 +44,7 @@ func NewFileObject(path string, rotate,compress bool, opts ...RotateOption) *Fil
 	obj.flag = Flag
 	obj.perm = os.FileMode(Perm)
 	obj.isRotate = rotate
+	obj.isRotateDaily = daily
 	obj.isCompress = compress
 
     obj.file, err = obj.Open()
@@ -158,13 +156,15 @@ func (f *FileObject) Writing(p []byte) error {
 		}
 
 		// rotate by every morning at 00:00:00
-		if f.RotateByDaily() {
-			f.Lock()
-			f.rotate.currentTime = time.Now()
-			if err := f.DoRotate(); err != nil {
-				return err
+		if f.isRotateDaily {
+			if f.RotateByDaily() {
+				f.Lock()
+				f.rotate.currentTime = time.Now()
+				if err := f.DoRotate(); err != nil {
+					return err
+				}
+				f.Unlock()
 			}
-			f.Unlock()
 		}
 	}
 

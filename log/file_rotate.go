@@ -36,24 +36,39 @@ type Rotate struct {
 
 type RotateOption func(*Rotate)
 
+// WithMaxLinesOption is an optional function, the maximum
+// number of rows of log files can be configured through
+// the function option mode.
 func WithMaxLinesOption(l int64) RotateOption {
 	return func(o *Rotate) {
 		o.maxLines = l
 	}
 }
 
+// WithMaxSizeOption is an optional function, the maximum
+// size of the log file can be configured through the function
+// option mode.
 func WithMaxSizeOption(s int64) RotateOption {
 	return func(o *Rotate) {
 		o.maxSize = s
 	}
 }
 
+// WithMaxDaysOption is an optional function, the maximum
+// number of days to save log files can be configured through
+// the function option mode.
 func WithMaxDaysOption(d int) RotateOption {
 	return func(o *Rotate) {
 		o.maxKeepDays = d
 	}
 }
 
+// DoRotate method implements the specific rotation logic:
+// 1. Close the old log file handle first;
+// 2. Rename the old log, for example: a.log is renamed to a.log.1;
+// 3. Open and generate a new log file handle, The handle pointer is assigned to f;
+// 4. If log compression is configured, the asynchronous compression function will
+// be called, written to chan, and executed asynchronously.
 func (f *FileObject) DoRotate() error {
 	var err error
 
@@ -65,7 +80,7 @@ func (f *FileObject) DoRotate() error {
 	f.file = nil
 
 	// time format
-	format := time.Now().Format("20060102_150405")
+	format := time.Now().Format("20060102")
 
 	// Rename the log that will be rotated
 	// For example: a.log will be renamed to a.log.1

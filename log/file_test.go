@@ -9,15 +9,16 @@ func TestNewFileObject(t *testing.T) {
 	logger.SetFlag()
 	logger.SetAsynChronous()
 	logger.SetOutput(FILE, map[string]interface{}{
-		"path": "/Users/shenping/project/golang/src/mant/a.log",
+		"path": "/Users/shenping/Project/golang/src/mant/a.log",
 		"rotate": true,
+		"daily": true,
 		"compress": true,
 		"maxlines": int64(1000),
 		"maxsize": int64(100),
 		"maxkeepdays": 30,
 	})
 
-	for i := 0; i < 10000; i++ {
+	for i := 0; i < 10; i++ {
 		logger.Info(i)
 		logger.Infof("i: %d", i)
 	}

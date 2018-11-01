@@ -169,12 +169,13 @@ func (l *Logger) SetOutput(adapter string, arg ...map[string]interface{}) {
 	case FILE:
 		if len(arg) > 0 {
 			var tmp struct{
-				path        string
-				isRotate    bool
-				isCompress  bool
-				maxLines    int64
-				maxSize     int64
-				maxKeepDays int
+				path          string
+				isRotate      bool
+				isRotateDaily bool
+				isCompress    bool
+				maxLines      int64
+				maxSize       int64
+				maxKeepDays   int
 			}
 
 			for key, value := range arg[0] {
@@ -183,6 +184,8 @@ func (l *Logger) SetOutput(adapter string, arg ...map[string]interface{}) {
 					tmp.path = value.(string)
 				case "rotate":
 					tmp.isRotate = value.(bool)
+				case "daily":
+					tmp.isRotateDaily = value.(bool)
 				case "compress":
 					tmp.isCompress = value.(bool)
 				case "maxlines":
@@ -194,7 +197,7 @@ func (l *Logger) SetOutput(adapter string, arg ...map[string]interface{}) {
 				}
 			}
 
-			f := NewFileObject(tmp.path, tmp.isRotate, tmp.isCompress, WithMaxLinesOption(tmp.maxLines), WithMaxSizeOption(tmp.maxSize), WithMaxDaysOption(tmp.maxKeepDays))
+			f := NewFileObject(tmp.path, tmp.isRotate, tmp.isCompress, tmp.isRotateDaily, WithMaxLinesOption(tmp.maxLines), WithMaxSizeOption(tmp.maxSize), WithMaxDaysOption(tmp.maxKeepDays))
 			l.writer = append(l.writer, f)
 		} else {
 			return
