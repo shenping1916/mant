@@ -1,15 +1,13 @@
 package log
 
-import (
-	"testing"
-)
+import "testing"
 
-func TestNewFileObject(t *testing.T) {
+func TestNewMultiFileObject(t *testing.T) {
 	logger := NewLogger(3, LEVELDEBUG)
 	logger.SetFlag()
 	logger.SetAsynChronous()
-	logger.SetOutput(FILE, map[string]interface{}{
-		"path": "/Users/shenping/Project/golang/src/mant/a.log",
+	logger.SetOutput(MULTIFILE, map[string]interface{}{
+		"path": "/Users/shenping/Project/golang/src/mant/test",
 		"rotate": true,
 		"daily": true,
 		"compress": true,
@@ -19,27 +17,26 @@ func TestNewFileObject(t *testing.T) {
 	})
 
 	for i := 0; i < 1000; i++ {
-		logger.Info(i)
-		logger.Infof("i: %d", i)
+		logger.Debug("debug")
+		logger.Debugf("debugf: %d", 1)
 	}
 
 	logger.Close()
 }
 
-func BenchmarkNewFileObject(b *testing.B) {
+func BenchmarkNewLogger(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
 
 	logger := NewLogger(3, LEVELDEBUG)
 	logger.SetFlag()
-	logger.SetLonged()
 	logger.SetAsynChronous()
-	logger.SetOutput(FILE, map[string]interface{}{
-		"path": "/Users/shenping/Project/golang/src/mant/a.log",
+	logger.SetOutput(MULTIFILE, map[string]interface{}{
+		"path": "/Users/shenping/Project/golang/src/mant/test",
 		"rotate": true,
 		"daily": true,
 		"compress": true,
-		"maxlines": int64(100),
+		"maxlines": int64(1000),
 		"maxsize": int64(100),
 		"maxkeepdays": 30,
 	})

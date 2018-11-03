@@ -23,6 +23,9 @@ type FileObject struct {
 	flag          int
 	perm          os.FileMode
 
+	// just for multifile
+	level         int
+
 	isRotate      bool
 	isRotateDaily bool
 	isCompress    bool
@@ -128,7 +131,8 @@ func (f *FileObject) InitLine() int64 {
 }
 
 // Writing method is used to write a byte array to file.
-// Before writing, you must judge whether you want to rorate.
+// Automatically execute rotate logic and delete logic
+// before writing.
 func (f *FileObject) Writing(p []byte) error {
 	if len(p) == 0 {
 		return nil
@@ -154,21 +158,22 @@ func (f *FileObject) Writing(p []byte) error {
 			}
 			f.Unlock()
 		}
+	}
 
-		// rotate by every morning at 00:00:00
-		if f.isRotateDaily {
-			if f.RotateByDaily() {
-				f.Lock()
-				f.rotate.currentTime = time.Now()
-				if err := f.DoRotate(); err != nil {
-					return err
-				}
-				f.Unlock()
+	// rotate by every morning at 00:00:00
+	if f.isRotateDaily {
+		if f.RotateByDaily() {
+			f.Lock()
+			f.rotate.currentTime = time.Now()
+			if err := f.DoRotate(); err != nil {
+				return err
 			}
+			f.Unlock()
 		}
 	}
 
 	f.Lock()
+	p = p[2:]
 	_, err := f.file.Write(p)
 	if err != nil {
 		return err

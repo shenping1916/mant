@@ -166,7 +166,7 @@ func (l *Logger) SetOutput(adapter string, arg ...map[string]interface{}) {
 	case CONSOLE:
 		c := NewConsoleObject()
 		l.writer = append(l.writer, c)
-	case FILE:
+	case FILE, MULTIFILE:
 		if len(arg) > 0 {
 			var tmp struct{
 				path          string
@@ -197,12 +197,16 @@ func (l *Logger) SetOutput(adapter string, arg ...map[string]interface{}) {
 				}
 			}
 
-			f := NewFileObject(tmp.path, tmp.isRotate, tmp.isCompress, tmp.isRotateDaily, WithMaxLinesOption(tmp.maxLines), WithMaxSizeOption(tmp.maxSize), WithMaxDaysOption(tmp.maxKeepDays))
-			l.writer = append(l.writer, f)
+			if adapter == FILE {
+				f := NewFileObject(tmp.path, tmp.isRotate, tmp.isCompress, tmp.isRotateDaily, WithMaxLinesOption(tmp.maxLines), WithMaxSizeOption(tmp.maxSize), WithMaxDaysOption(tmp.maxKeepDays))
+				l.writer = append(l.writer, f)
+			} else if adapter == MULTIFILE {
+				multi := NewMultiFileObject(tmp.path, l.LevelString(), tmp.isRotate, tmp.isCompress, tmp.isRotateDaily, tmp.maxLines, tmp.maxSize, tmp.maxKeepDays)
+				l.writer = append(l.writer, multi)
+			}
 		} else {
 			return
 		}
-	case MULTIFILE:
 	case SYSLOG:
 	}
 }
@@ -214,6 +218,25 @@ func (l *Logger) MBtoBytes(u int64) int64 {
 	} else {
 		return default_rotate.maxSize
 	}
+}
+
+// LevelString method writes a log slice greater than or equal
+// to the currently set to a string slice and returns.
+func (l *Logger) LevelString() []string {
+	switch l.level {
+	case LEVELDEBUG:
+		return lower[:]
+	case LEVELINFO:
+		return lower[1:]
+	case LEVELWARN:
+		return lower[2:]
+	case LEVELERROR:
+		return lower[3:]
+	case LEVELFATAL:
+		return lower[4:]
+	}
+
+	return []string{}
 }
 
 // Async provides asynchronous write of logs, implemented by chan.
@@ -249,7 +272,7 @@ func (l *Logger) Async() {
 // The global unique log processing entry, after receiving the
 // log information of each level, processing.
 func (l *Logger) Wrapper(level string, v ...interface{}) {
-	l.format(time.Now())
+	l.format(level, time.Now())
 
 	// full path/short path + line number
 	abs, line := l.CallDepth()
@@ -289,7 +312,7 @@ func (l *Logger) Wrapper(level string, v ...interface{}) {
 // The global unique log processing entry, after receiving the
 // log information of each level, processing.
 func (l *Logger) Wrapperf(level string, format string, v ...interface{}) {
-	l.format(time.Now())
+	l.format(level, time.Now())
 
 	// full path/short path + line number
 	abs, line := l.CallDepth()

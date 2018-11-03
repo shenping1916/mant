@@ -1,8 +1,8 @@
 package log
 
 var (
-	upper = [uint(5)]string{"DEBUG", "INFO", "WARN", "ERROR", "FATAL"}
-    lower = [uint(5)]string{"debug", "info", "warn", "error", "fatal"}
+	upper = [5]string{"DEBUG", "INFO", "WARN", "ERROR", "FATAL"}
+    lower = [5]string{"debug", "info", "warn", "error", "fatal"}
 )
 
 // Log level reference java log4j

@@ -24,9 +24,25 @@ func (l *Logger) itoa(i int, wid int) {
 
 // Format is used to format the log header, including: log prefix (if any), date (year/month/day),
 // time (hour: minute: second), host name.
-func (l *Logger) format(cTime time.Time) {
+func (l *Logger) format(level string, cTime time.Time) {
 	l.buf.Reset()
 
+	if level != "" {
+		// write level
+		switch level {
+		case "debug", "DEBUG":
+			l.buf.WriteString("0")
+		case "info", "INFO":
+			l.buf.WriteString("1")
+		case "warn", "WARN":
+			l.buf.WriteString("2")
+		case "error", "ERROR":
+			l.buf.WriteString("3")
+		case "fatal", "FATAL":
+			l.buf.WriteString("4")
+		}
+		l.buf.WriteString(" ")
+	}
 	if l.prefix != "" {
 		l.buf.WriteString(l.prefix)
 		l.buf.WriteString(" ")
