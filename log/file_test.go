@@ -7,6 +7,7 @@ import (
 func TestNewFileObject(t *testing.T) {
 	logger := NewLogger(3, LEVELDEBUG)
 	logger.SetFlag()
+	//logger.SetColour()
 	logger.SetAsynChronous()
 	logger.SetOutput(FILE, map[string]interface{}{
 		"path": "/Users/shenping/Project/golang/src/mant/a.log",
@@ -32,6 +33,7 @@ func BenchmarkNewFileObject(b *testing.B) {
 
 	logger := NewLogger(3, LEVELDEBUG)
 	logger.SetFlag()
+	logger.SetColour()
 	logger.SetLonged()
 	logger.SetAsynChronous()
 	logger.SetOutput(FILE, map[string]interface{}{

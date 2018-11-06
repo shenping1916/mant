@@ -5,10 +5,20 @@ import (
 )
 
 func main() {
-	logger := log.NewLogger(3, log.LEVELERROR)
+	logger := log.NewLogger(3, log.LEVELDEBUG)
 	logger.SetFlag()
 	logger.SetAsynChronous()
+	logger.SetColour()
 	logger.SetOutput(log.CONSOLE)
+	logger.SetOutput(log.FILE, map[string]interface{}{
+		"path": "/Users/shenping/Project/golang/src/mant/a.log",
+		"rotate": true,
+		"daily": true,
+		"compress": true,
+		"maxlines": int64(100),
+		"maxsize": int64(100),
+		"maxkeepdays": 30,
+	})
 
 	logger.Debug("debug")
 	logger.Debugf("debugf: %d", 1)

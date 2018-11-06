@@ -12,7 +12,7 @@ type MultiFileObject struct {
 // that returns a MultiFileObject pointer object.
 func NewMultiFileObject(path string, levels []string, rotate,compress,daily bool, lines,size int64, keepdays int) *MultiFileObject {
 	multiobj := &MultiFileObject{}
-	multiobj.Files = make([]*FileObject, len(levels))
+	multiobj.Files = make([]*FileObject, 0, len(levels))
 
 	for index, level := range levels {
 		fName := fmt.Sprintf("%s/%s.log", path, level)
@@ -28,11 +28,12 @@ func NewMultiFileObject(path string, levels []string, rotate,compress,daily bool
 
 // Write method is used to write a byte array to all files.
 // Automatically execute rotate logic and delete logic before writing.
+// TODO: To be optimized
 func (m *MultiFileObject) Writing(p []byte) error {
 	for i, j := 0, len(m.Files); i < j; i ++ {
 		f := m.Files[i]
-		if f != nil && byte('0' + f.level) == p[0] {
-			if err := f.Writing(p[2:]); err != nil {
+		if f != nil && byte('0' + f.level) == p[0:1][0] {
+			if err := f.Writing(p); err != nil {
 				return err
 			}
 		}

@@ -36,11 +36,11 @@ type Logger struct {
 	prefix     string
 	linkbreak  string
 	calldepth  int
+	colourful  colourwrapper
 	buf        *bytes.Buffer
 	writer     []Writer
 	flag       bool
 	longed     bool
-	colourfull bool
 	async      bool
 	asynch     chan []byte
 	asynstop   chan struct{}
@@ -91,13 +91,16 @@ func (l *Logger) SetColour() {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	l.colourfull = true
+	l.colourful = NewColour()
 }
 
 // Set the line break of the log line, which needs to be
 // determined according to the operating system.
 // No need to display the call, only for internal calls.
 func (l *Logger) SetLinkBeak() string {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
 	if runtime.GOOS == "windows" {
 		return "\r\n"
 	} else {
@@ -284,6 +287,7 @@ func (l *Logger) Wrapper(level string, v ...interface{}) {
 		_, f = path.Split(abs)
 	}
 
+	// log path(calldepth) && line number
 	l.buf.WriteString(f)
 	l.buf.WriteString(":")
 	l.buf.WriteString(strconv.Itoa(line))
@@ -298,9 +302,11 @@ func (l *Logger) Wrapper(level string, v ...interface{}) {
 	// write msg
 	msg := fmt.Sprint(v...)
 	l.buf.WriteString(msg)
+
+	// write linkbreak
 	l.buf.WriteString(l.linkbreak)
 
-	// do not use the l.buf.Bytes() method, it will cause out of order
+	//do not use the l.buf.Bytes() method, it will cause out of order
 	b := base.StringToBytes(l.buf.String())
 	if l.async {
 		l.asynch <- b
@@ -324,6 +330,7 @@ func (l *Logger) Wrapperf(level string, format string, v ...interface{}) {
 		_, f = path.Split(abs)
 	}
 
+	// log path(calldepth) && line number
 	l.buf.WriteString(f)
 	l.buf.WriteString(":")
 	l.buf.WriteString(strconv.Itoa(line))
@@ -338,9 +345,11 @@ func (l *Logger) Wrapperf(level string, format string, v ...interface{}) {
 	// write msg
 	msg := fmt.Sprintf(format, v...)
 	l.buf.WriteString(msg)
+
+	// write linkbreak
 	l.buf.WriteString(l.linkbreak)
 
-	// do not use the l.buf.Bytes() method, it will cause out of order
+	//do not use the l.buf.Bytes() method, it will cause out of order
 	b := base.StringToBytes(l.buf.String())
 	if l.async {
 		l.asynch <- b
