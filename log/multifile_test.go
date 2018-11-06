@@ -5,6 +5,7 @@ import "testing"
 func TestNewMultiFileObject(t *testing.T) {
 	logger := NewLogger(3, LEVELDEBUG)
 	logger.SetFlag()
+	logger.SetColour()
 	logger.SetAsynChronous()
 	logger.SetOutput(MULTIFILE, map[string]interface{}{
 		"path": "/Users/shenping/Project/golang/src/mant/test",
@@ -16,9 +17,21 @@ func TestNewMultiFileObject(t *testing.T) {
 		"maxkeepdays": 30,
 	})
 
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < 100000; i++ {
 		logger.Debug("debug")
 		logger.Debugf("debugf: %d", 1)
+
+		logger.Info("info")
+		logger.Infof("infof: %d", 2)
+
+		logger.Warn("warn")
+		logger.Warnf("warnf: %d", 3)
+
+		logger.Error("error")
+		logger.Errorf("errorf: %d", 3)
+
+		logger.Fatal("fatal")
+		logger.Fatalf("fatalf: %d", 4)
 	}
 
 	logger.Close()
@@ -30,6 +43,7 @@ func BenchmarkNewLogger(b *testing.B) {
 
 	logger := NewLogger(3, LEVELDEBUG)
 	logger.SetFlag()
+	logger.SetColour()
 	logger.SetAsynChronous()
 	logger.SetOutput(MULTIFILE, map[string]interface{}{
 		"path": "/Users/shenping/Project/golang/src/mant/test",

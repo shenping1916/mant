@@ -307,7 +307,13 @@ func (l *Logger) Wrapper(level string, v ...interface{}) {
 	l.buf.WriteString(l.linkbreak)
 
 	//do not use the l.buf.Bytes() method, it will cause out of order
-	b := base.StringToBytes(l.buf.String())
+	var out string
+	if l.colourful != nil {
+		out = l.colourful.ColourOutPut(l.buf, level, l.buf.String())
+	} else {
+		out = l.buf.String()
+	}
+	b := base.StringToBytes(out)
 	if l.async {
 		l.asynch <- b
 	} else {
@@ -350,7 +356,13 @@ func (l *Logger) Wrapperf(level string, format string, v ...interface{}) {
 	l.buf.WriteString(l.linkbreak)
 
 	//do not use the l.buf.Bytes() method, it will cause out of order
-	b := base.StringToBytes(l.buf.String())
+	var out string
+	if l.colourful != nil {
+		out = l.colourful.ColourOutPut(l.buf, level, l.buf.String())
+	} else {
+		out = l.buf.String()
+	}
+	b := base.StringToBytes(out)
 	if l.async {
 		l.asynch <- b
 	} else {
