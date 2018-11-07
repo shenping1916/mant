@@ -33,9 +33,7 @@ func (m *MultiFileObject) Writing(p []byte) error {
 	for i, j := 0, len(m.Files); i < j; i ++ {
 		f := m.Files[i]
 		if f != nil && byte('0' + f.level) == p[0:1][0] {
-			if err := f.Writing(p[:]); err != nil {
-				return err
-			}
+			f.Writing(p[:])
 		}
 	}
 

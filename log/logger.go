@@ -166,6 +166,29 @@ func (l *Logger) SetOutput(adapter string, arg ...map[string]interface{}) {
 
 	switch adapter {
 	case CONN:
+		if len(arg) > 0 {
+			var tmp struct{
+				nettype    string
+				addrs      []string
+				timeout    time.Duration
+			}
+
+			for key, value := range arg[0] {
+				switch key {
+				case "nettype":
+					tmp.nettype = value.(string)
+				case "addrs":
+					tmp.addrs = value.([]string)
+				case "timeout":
+					tmp.timeout = time.Duration(value.(int64)) * time.Second
+				}
+			}
+
+			conn := NewConnObject(tmp.nettype, tmp.addrs, tmp.timeout)
+			l.writer = append(l.writer, conn)
+		} else {
+			return
+		}
 	case CONSOLE:
 		c := NewConsoleObject()
 		l.writer = append(l.writer, c)

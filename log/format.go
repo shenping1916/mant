@@ -5,6 +5,12 @@ import (
 	"time"
 )
 
+var hostname string
+
+func init()  {
+	hostname, _ = os.Hostname()
+}
+
 // Cheap integer to fixed-width decimal ASCII. Give a negative width to avoid zero-padding.
 func (l *Logger) itoa(i int, wid int) {
 	// Assemble decimal in reverse order.
@@ -69,7 +75,6 @@ func (l *Logger) format(level string, cTime time.Time) {
 	l.buf.WriteString(" ")
 
     // hostname
-    host, _ := os.Hostname()
-	l.buf.WriteString(host)
+	l.buf.WriteString(hostname)
 	l.buf.WriteString(" ")
 }

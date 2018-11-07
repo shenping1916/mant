@@ -130,9 +130,8 @@ func (f *FileObject) InitLine() int64 {
 	return line
 }
 
-// Writing method is used to write a byte array to file.
-// Automatically execute rotate logic and delete logic
-// before writing.
+// Writing method is used to transfer the byte array to the server through
+// the established network connection.
 func (f *FileObject) Writing(p []byte) error {
 	if len(p) == 0 {
 		return nil
@@ -144,7 +143,7 @@ func (f *FileObject) Writing(p []byte) error {
 			f.Lock()
 			f.rotate.currentLine = 0
 			if err := f.DoRotate(); err != nil {
-				return err
+				fmt.Fprintln(os.Stderr, "Unable to execute rotate: ", err)
 			}
 			f.Unlock()
 		}
@@ -154,7 +153,7 @@ func (f *FileObject) Writing(p []byte) error {
 			f.Lock()
 			f.rotate.currentSize = 0
 			if err := f.DoRotate(); err != nil {
-				return err
+				fmt.Fprintln(os.Stderr, "Unable to execute rotate: ", err)
 			}
 			f.Unlock()
 		}
@@ -166,7 +165,7 @@ func (f *FileObject) Writing(p []byte) error {
 			f.Lock()
 			f.rotate.currentTime = time.Now()
 			if err := f.DoRotate(); err != nil {
-				return err
+				fmt.Fprintln(os.Stderr, "Unable to execute rotate: ", err)
 			}
 			f.Unlock()
 		}
@@ -176,7 +175,7 @@ func (f *FileObject) Writing(p []byte) error {
 	p = p[2:]
 	_, err := f.file.Write(p)
 	if err != nil {
-		return err
+		fmt.Fprintln(os.Stderr, "Log file write failed: ", err)
 	} else {
 		// increase in the number of rows
 		atomic.AddInt64(&f.rotate.currentLine, 1)
