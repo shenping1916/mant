@@ -340,6 +340,7 @@ func (l *Logger) Wrapper(level string, v ...interface{}) {
 	} else {
 		out = l.buf.String()
 	}
+
 	b := base.StringToBytes(out)
 	if l.async {
 		l.asynch <- b
@@ -389,6 +390,7 @@ func (l *Logger) Wrapperf(level string, format string, v ...interface{}) {
 	} else {
 		out = l.buf.String()
 	}
+	
 	b := base.StringToBytes(out)
 	if l.async {
 		l.asynch <- b
