@@ -58,19 +58,19 @@ func NewColour() *Colour {
 // finally splicing all the contents and returning.
 func (c * Colour) ColourOutPut(buf *bytes.Buffer, level string, msg string) string {
 	levelFg := c.ColourForeGround(level)
-    levelBg := c.ColourBackGround()
+	levelBg := c.ColourBackGround()
 
-    buf.Reset()
-    buf.WriteString(msg[0:2])
+	buf.Reset()
+	buf.WriteString(msg[0:2])
 	buf.WriteString(c.capital)
 	buf.WriteString("[")
-    buf.WriteString(strconv.Itoa(levelFg))
+	buf.WriteString(strconv.Itoa(levelFg))
 	buf.WriteString(";")
 	buf.WriteString(strconv.Itoa(levelBg))
 	buf.WriteString("m")
 	buf.WriteString(msg[2:])
 	buf.WriteString(c.capital)
-    buf.WriteString("[0m")
+	buf.WriteString("[0m")
 
 	return buf.String()
 }
