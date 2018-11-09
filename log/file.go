@@ -50,16 +50,21 @@ func NewFileObject(path string, rotate,compress,daily bool, opts ...RotateOption
 	obj.isRotateDaily = daily
 	obj.isCompress = compress
 
+	// log rotation configuration
 	obj.file, err = obj.Open()
 	if err != nil {
 		panic(err)
 	}
 	obj.rotate = option
 
+	// log compression configuration
 	obj.compress = Compress{}
 	obj.compress.taskQueue = make(chan task, 20)
 	obj.compress.ctx, obj.compress.cancel = context.WithCancel(context.Background())
 	go obj.compress.TaskListen()
+
+	// history log file deletion
+	go obj.DeleteOld()
 
 	// set file initialization information
 	obj.InitStat()
@@ -105,9 +110,9 @@ func (f *FileObject) InitStat() {
 		panic(err)
 	}
 
-	f.rotate.currentSize = info.Size()
-	f.rotate.currentLine = f.InitLine()
-	f.rotate.currentTime = time.Now()
+	f.rotate.CurrentSize = info.Size()
+	f.rotate.CurrentLine = f.InitLine()
+	f.rotate.CurrentTime = time.Now()
 	f.RUnlock()
 }
 
@@ -141,7 +146,7 @@ func (f *FileObject) Writing(p []byte) error {
 		// rotate by log line number
 		if f.RotateByLines() {
 			f.Lock()
-			f.rotate.currentLine = 0
+			f.rotate.CurrentLine = 0
 			if err := f.DoRotate(); err != nil {
 				fmt.Fprintln(os.Stderr, "Unable to execute rotate: ", err)
 			}
@@ -151,7 +156,7 @@ func (f *FileObject) Writing(p []byte) error {
 		// rotate by log file size
 		if f.RotateBySizes() {
 			f.Lock()
-			f.rotate.currentSize = 0
+			f.rotate.CurrentSize = 0
 			if err := f.DoRotate(); err != nil {
 				fmt.Fprintln(os.Stderr, "Unable to execute rotate: ", err)
 			}
@@ -163,7 +168,7 @@ func (f *FileObject) Writing(p []byte) error {
 	if f.isRotateDaily {
 		if f.RotateByDaily() {
 			f.Lock()
-			f.rotate.currentTime = time.Now()
+			f.rotate.CurrentTime = time.Now()
 			if err := f.DoRotate(); err != nil {
 				fmt.Fprintln(os.Stderr, "Unable to execute rotate: ", err)
 			}
@@ -178,9 +183,9 @@ func (f *FileObject) Writing(p []byte) error {
 		fmt.Fprintln(os.Stderr, "Log file write failed: ", err)
 	} else {
 		// increase in the number of rows
-		atomic.AddInt64(&f.rotate.currentLine, 1)
+		atomic.AddInt64(&f.rotate.CurrentLine, 1)
 		// increase in the file size
-		atomic.AddInt64(&f.rotate.currentSize, int64(len(p)))
+		atomic.AddInt64(&f.rotate.CurrentSize, int64(len(p)))
 	}
 	f.Unlock()
 

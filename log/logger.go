@@ -246,7 +246,7 @@ func (l *Logger) MBtoBytes(u int64) int64 {
 	if u > 0 {
 		return u << 20
 	} else {
-		return default_rotate.maxSize
+		return default_rotate.MaxSize
 	}
 }
 

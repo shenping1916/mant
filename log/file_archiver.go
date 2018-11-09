@@ -37,6 +37,8 @@ func (c Compress) TaskListen() {
 			if err := fn(); err != nil {
 				fmt.Fprintln(os.Stderr, "log compression error: ", err)
 			}
+		case <- c.ctx.Done():
+			return
 		}
 	}
 }

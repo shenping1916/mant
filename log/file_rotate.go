@@ -12,26 +12,28 @@ import (
 // Default configuration for rotation,
 // included: maxlines、maxsize、max
 var default_rotate = Rotate{
-	maxLines: 10000,       // num:  10000
-	maxSize: 150 << 20,    // size: 150MB
-	maxKeepDays: 7,        // days: 7days
+	MaxLines: 10000,       // num:  10000
+	MaxSize: 150 << 20,    // size: 150MB
+	MaxKeepDays: 7,        // days: 7days
 }
+
+var DefaultTimeFormat = "20060102150405"
 
 type Rotate struct {
 	// Rotary counter
-	count int
+	Count int
 
 	// Rotate by max lines
-	maxLines    int64
-	currentLine int64
+	MaxLines    int64
+	CurrentLine int64
 
 	// Rotate by max size
-	maxSize     int64
-	currentSize int64
+	MaxSize     int64
+	CurrentSize int64
 
 	// Rotate by max days
-	maxKeepDays int
-	currentTime time.Time
+	MaxKeepDays int
+	CurrentTime time.Time
 }
 
 type RotateOption func(*Rotate)
@@ -41,7 +43,7 @@ type RotateOption func(*Rotate)
 // the function option mode.
 func WithMaxLinesOption(l int64) RotateOption {
 	return func(o *Rotate) {
-		o.maxLines = l
+		o.MaxLines = l
 	}
 }
 
@@ -50,7 +52,7 @@ func WithMaxLinesOption(l int64) RotateOption {
 // option mode.
 func WithMaxSizeOption(s int64) RotateOption {
 	return func(o *Rotate) {
-		o.maxSize = s
+		o.MaxSize = s
 	}
 }
 
@@ -59,7 +61,7 @@ func WithMaxSizeOption(s int64) RotateOption {
 // the function option mode.
 func WithMaxDaysOption(d int) RotateOption {
 	return func(o *Rotate) {
-		o.maxKeepDays = d
+		o.MaxKeepDays = d
 	}
 }
 
@@ -73,18 +75,18 @@ func (f *FileObject) DoRotate() error {
 	var err error
 
 	// counter increment
-	f.rotate.count++
+	f.rotate.Count++
 
 	// close old file handle
 	f.file.Close()
 	f.file = nil
 
 	// time format
-	format := time.Now().Format("20060102")
+	format := time.Now().Format(DefaultTimeFormat)
 
 	// Rename the log that will be rotated
 	// For example: a.log will be renamed to a.log.1
-	fName := f.path + "." + strconv.Itoa(f.rotate.count)
+	fName := f.path + "." + format + "_" + strconv.Itoa(f.rotate.Count)
 	if err = os.Rename(f.path, fName); err != nil {
 		return err
 	}
@@ -96,7 +98,7 @@ func (f *FileObject) DoRotate() error {
 	}
 
 	if f.isCompress {
-		splice := "." + format + "_" + strconv.Itoa(f.rotate.count) + ".zip"
+		splice := "." + format + "_" + strconv.Itoa(f.rotate.Count) + ".zip"
 		zipName := strings.Replace(f.path, filepath.Ext(f.path), splice, 1)
 
 		select {
@@ -110,15 +112,15 @@ func (f *FileObject) DoRotate() error {
 }
 
 func (f *FileObject) RotateByLines() bool {
-	return f.rotate.maxLines > 0 && f.rotate.currentLine >= f.rotate.maxLines
+	return f.rotate.MaxLines > 0 && f.rotate.CurrentLine >= f.rotate.MaxLines
 }
 
 func (f *FileObject) RotateBySizes() bool {
-	return f.rotate.maxSize > 0 && f.rotate.currentSize >= f.rotate.maxSize
+	return f.rotate.MaxSize > 0 && f.rotate.CurrentSize >= f.rotate.MaxSize
 }
 
 func (f *FileObject) RotateByDaily() bool {
-	t := f.rotate.currentTime
+	t := f.rotate.CurrentTime
 	t_ := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location()).AddDate(0, 0, 1)
 	tm := t_.Unix()
 
