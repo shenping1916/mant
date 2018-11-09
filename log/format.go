@@ -64,7 +64,7 @@ func (l *Logger) format(level string, cTime time.Time) {
 	l.buf.WriteString(" ")
 
 	// hour、minute、second、nanosecond
-    hour, minute, second := cTime.Clock()
+	hour, minute, second := cTime.Clock()
 	l.itoa(hour, 2)
 	l.buf.WriteString(":")
 	l.itoa(minute, 2)
@@ -74,7 +74,7 @@ func (l *Logger) format(level string, cTime time.Time) {
 	l.itoa(cTime.Nanosecond() / 1e3, 6)
 	l.buf.WriteString(" ")
 
-    // hostname
+	// hostname
 	l.buf.WriteString(hostname)
 	l.buf.WriteString(" ")
 }
