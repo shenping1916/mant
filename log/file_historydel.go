@@ -1,7 +1,6 @@
 package log
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -36,16 +35,12 @@ func (f *FileObject) DeleteOld() {
 					if strings.HasSuffix(name, ".zip") {
 						timestamp := name[2:16]
 						if f.isDelete(timestamp) {
-							if err := os.Remove(name); err != nil {
-								fmt.Fprintf(os.Stderr, "Failed to delete expired logs: %s, reason: %v", name, err)
-							}
+							os.Remove(name)
 						}
 					} else if strings.Index(name, ".log.") == 1 {
 						timestamp := name[6:20]
 						if f.isDelete(timestamp) {
-							if err := os.Remove(name); err != nil {
-								fmt.Fprintf(os.Stderr, "Failed to delete expired logs: %s, reason: %v", name, err)
-							}
+							os.Remove(name)
 						}
 					}
 				}
