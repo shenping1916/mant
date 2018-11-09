@@ -50,21 +50,21 @@ func NewFileObject(path string, rotate,compress,daily bool, opts ...RotateOption
 	obj.isRotateDaily = daily
 	obj.isCompress = compress
 
-    obj.file, err = obj.Open()
-    if err != nil {
-    	panic(err)
-    }
-    obj.rotate = option
+	obj.file, err = obj.Open()
+	if err != nil {
+		panic(err)
+	}
+	obj.rotate = option
 
-    obj.compress = Compress{}
-    obj.compress.taskQueue = make(chan task, 20)
-    obj.compress.ctx, obj.compress.cancel = context.WithCancel(context.Background())
-    go obj.compress.TaskListen()
+	obj.compress = Compress{}
+	obj.compress.taskQueue = make(chan task, 20)
+	obj.compress.ctx, obj.compress.cancel = context.WithCancel(context.Background())
+	go obj.compress.TaskListen()
 
-    // set file initialization information
-    obj.InitStat()
+	// set file initialization information
+	obj.InitStat()
 
-    return obj
+	return obj
 }
 
 // Open is used to open a log file and return file handles and errors.
@@ -106,9 +106,9 @@ func (f *FileObject) InitStat() {
 	}
 
 	f.rotate.currentSize = info.Size()
-    f.rotate.currentLine = f.InitLine()
-    f.rotate.currentTime = time.Now()
-    f.RUnlock()
+	f.rotate.currentLine = f.InitLine()
+	f.rotate.currentTime = time.Now()
+	f.RUnlock()
 }
 
 // InitLine is used to get the total number of rows in the log file.
