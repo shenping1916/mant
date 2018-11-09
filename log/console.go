@@ -27,8 +27,8 @@ func (c *ConsoleObject) Writing(p []byte) error {
 	}
 
 	c.mu.Lock()
-	p = p[2:]
-	_, err := c.w.Write(p)
+	p_ := p[2:]
+	_, err := c.w.Write(p_)
 	if err != nil {
 		return err
 	}
@@ -38,7 +38,9 @@ func (c *ConsoleObject) Writing(p []byte) error {
 }
 
 func (c *ConsoleObject) Flush() {
+	return
 }
 
 func (c *ConsoleObject) Close() {
+	return
 }

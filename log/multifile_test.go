@@ -3,7 +3,7 @@ package log
 import "testing"
 
 func TestNewMultiFileObject(t *testing.T) {
-	logger := NewLogger(3, LEVELDEBUG)
+	logger := NewLogger(2, LEVELDEBUG)
 	logger.SetFlag()
 	logger.SetColour()
 	logger.SetAsynChronous()
@@ -17,7 +17,7 @@ func TestNewMultiFileObject(t *testing.T) {
 		"maxkeepdays": 30,
 	})
 
-	for i := 0; i < 100000; i++ {
+	for i := 0; i < 10000; i++ {
 		logger.Debug("debug")
 		logger.Debugf("debugf: %d", 1)
 

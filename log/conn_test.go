@@ -1,81 +1,149 @@
 package log
 
 import (
-	"io"
-	"log"
-	"net"
-	"os"
 	"testing"
 	"time"
 )
 
-var receiver [512]byte
+// UDP TEST
+func TestNewConnObject(t *testing.T) {
+	// client
+	logger := NewLogger(2, LEVELDEBUG)
+	logger.SetFlag()
+	logger.SetColour()
+	logger.SetAsynChronous()
+	logger.SetOutput(CONN, map[string]interface{}{
+		"nettype": "udp",
+		"addrs": []string{"127.0.0.1:2121"},
+		"timeout": int64(5),
+	})
 
-func handle(conn net.Conn) {
-	defer conn.Close()
+	for i := 0; i < 1000; i++ {
+		logger.Debug("debug")
+		logger.Debugf("debugf: %d", i)
 
-	for {
-		n, err := conn.Read(receiver[:])
-		if err != nil {
-			if err == io.EOF {
-				break
-			} else {
-				log.Fatal(err)
-			}
-		}
+		logger.Info("info")
+		logger.Infof("infof: %d", i)
 
-	    log.Println(string(receiver[0:n]))
+		logger.Warn("warn")
+		logger.Warnf("warnf: %d", i)
+
+		logger.Error("error")
+		logger.Errorf("errorf: %d", i)
+
+		logger.Fatal("fatal")
+		logger.Fatalf("fatalf: %d", i)
 	}
+
+	// Waiting for network transfer to complete
+	time.Sleep(3e9)
+
+	logger.Close()
 }
 
-func TestNewConnObject(t *testing.T) {
-	// server
-	server1 := func() {
-		l, err := net.Listen(DefaultNetworkType, "127.0.0.1:2121")
-		if err != nil {
-			t.Errorf("Error listening: %v", err.Error())
-			os.Exit(1)
-		}
-		defer l.Close()
+// TCP TEST
+func TestNewConnObject2(t *testing.T) {
+	// client
+	logger := NewLogger(2, LEVELDEBUG)
+	logger.SetFlag()
+	logger.SetColour()
+	logger.SetAsynChronous()
+	logger.SetOutput(CONN, map[string]interface{}{
+		"nettype": "tcp",
+		"addrs": []string{"127.0.0.1:2121"},
+	})
 
-		for {
-			conn, _ := l.Accept()
-			go handle(conn)
-		}
+	for i := 0; i < 1000; i++ {
+		logger.Debug("debug")
+		logger.Debugf("debugf: %d", i)
+
+		logger.Info("info")
+		logger.Infof("infof: %d", i)
+
+		logger.Warn("warn")
+		logger.Warnf("warnf: %d", i)
+
+		logger.Error("error")
+		logger.Errorf("errorf: %d", i)
+
+		logger.Fatal("fatal")
+		logger.Fatalf("fatalf: %d", i)
 	}
 
-	server2 := func() {
-		l, err := net.Listen(DefaultNetworkType, "127.0.0.1:2122")
-		if err != nil {
-			t.Errorf("Error listening: %v", err.Error())
-			os.Exit(1)
-		}
-		defer l.Close()
+	logger.Close()
+}
 
-		for {
-			conn, _ := l.Accept()
-			go handle(conn)
-		}
-	}
-
-	go server1()
-	go server2()
+//  Benchmark UDP
+func BenchmarkNewConnObject(b *testing.B) {
+	b.ReportAllocs()
+	b.ResetTimer()
 
 	// client
-	co := NewConnObject(DefaultNetworkType, []string{"127.0.0.1:2121", "127.0.0.1:2122"})
-	ticker := time.NewTicker(time.Duration(3) * time.Second)
-	go func() {
-		for {
-			select {
-			case <- ticker.C:
-				for _, conn := range co.conns {
-					co.Writing([]byte(conn.RemoteAddr().String()))
-				}
-			}
-		}
-	}()
+	logger := NewLogger(2, LEVELDEBUG)
+	logger.SetFlag()
+	logger.SetColour()
+	logger.SetAsynChronous()
+	logger.SetOutput(CONN, map[string]interface{}{
+		"nettype": "udp",
+		"addrs": []string{"127.0.0.1:2121"},
+		"timeout": int64(5),
+	})
 
-	time.Sleep(time.Duration(30) * time.Second)
-	ticker.Stop()
-	co.Close()
+	for i := 0; i <= b.N; i++ {
+		b.StartTimer()
+		logger.Debug("debug")
+		logger.Debugf("debugf: %d", i)
+
+		logger.Info("info")
+		logger.Infof("infof: %d", i)
+
+		logger.Warn("warn")
+		logger.Warnf("warnf: %d", i)
+
+		logger.Error("error")
+		logger.Errorf("errorf: %d", i)
+
+		logger.Fatal("fatal")
+		logger.Fatalf("fatalf: %d", i)
+		b.StopTimer()
+	}
+
+	logger.Close()
+}
+
+//  Benchmark TCP
+func BenchmarkNewConnObject2(b *testing.B) {
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	// client
+	logger := NewLogger(2, LEVELDEBUG)
+	logger.SetFlag()
+	logger.SetColour()
+	logger.SetAsynChronous()
+	logger.SetOutput(CONN, map[string]interface{}{
+		"nettype": "tcp",
+		"addrs": []string{"127.0.0.1:2121"},
+	})
+
+	for i := 0; i <= b.N; i++ {
+		b.StartTimer()
+		logger.Debug("debug")
+		logger.Debugf("debugf: %d", 1)
+
+		logger.Info("info")
+		logger.Infof("infof: %d", 2)
+
+		logger.Warn("warn")
+		logger.Warnf("warnf: %d", 3)
+
+		logger.Error("error")
+		logger.Errorf("errorf: %d", 3)
+
+		logger.Fatal("fatal")
+		logger.Fatalf("fatalf: %d", 4)
+		b.StopTimer()
+	}
+
+	logger.Close()
 }

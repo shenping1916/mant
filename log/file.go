@@ -172,8 +172,8 @@ func (f *FileObject) Writing(p []byte) error {
 	}
 
 	f.Lock()
-	p = p[2:]
-	_, err := f.file.Write(p)
+	p_ := p[2:]
+	_, err := f.file.Write(p_)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Log file write failed: ", err)
 	} else {

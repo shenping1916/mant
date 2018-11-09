@@ -60,6 +60,7 @@ func NewLogger(depth int, level ...Level) *Logger {
 	// Initialize writer
 	logger.writer = make([]Writer, 0, 10)
 
+	// Set log level
 	if len(level) > 0 {
 		l := level[0]
 		switch l {
@@ -70,6 +71,11 @@ func NewLogger(depth int, level ...Level) *Logger {
 		}
 	} else {
 		logger.SetLevel(LEVELINFO)
+	}
+
+	// Set the log path depth, 3: full path display; 3: short path.
+	if depth == 3 {
+		logger.SetLonged()
 	}
 
 	return logger
@@ -170,7 +176,6 @@ func (l *Logger) SetOutput(adapter string, arg ...map[string]interface{}) {
 			var tmp struct{
 				nettype    string
 				addrs      []string
-				timeout    time.Duration
 			}
 
 			for key, value := range arg[0] {
@@ -179,12 +184,10 @@ func (l *Logger) SetOutput(adapter string, arg ...map[string]interface{}) {
 					tmp.nettype = value.(string)
 				case "addrs":
 					tmp.addrs = value.([]string)
-				case "timeout":
-					tmp.timeout = time.Duration(value.(int64)) * time.Second
 				}
 			}
 
-			conn := NewConnObject(tmp.nettype, tmp.addrs, tmp.timeout)
+			conn := NewConnObject(tmp.nettype, tmp.addrs)
 			l.writer = append(l.writer, conn)
 		} else {
 			return
@@ -223,10 +226,11 @@ func (l *Logger) SetOutput(adapter string, arg ...map[string]interface{}) {
 				}
 			}
 
-			if adapter == FILE {
+			switch adapter {
+			case FILE:
 				f := NewFileObject(tmp.path, tmp.isRotate, tmp.isCompress, tmp.isRotateDaily, WithMaxLinesOption(tmp.maxLines), WithMaxSizeOption(tmp.maxSize), WithMaxDaysOption(tmp.maxKeepDays))
 				l.writer = append(l.writer, f)
-			} else if adapter == MULTIFILE {
+			case MULTIFILE:
 				multi := NewMultiFileObject(tmp.path, l.LevelString(), tmp.isRotate, tmp.isCompress, tmp.isRotateDaily, tmp.maxLines, tmp.maxSize, tmp.maxKeepDays)
 				l.writer = append(l.writer, multi)
 			}

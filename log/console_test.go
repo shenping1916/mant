@@ -11,8 +11,10 @@ func TestNewConsoleObject(t *testing.T) {
 	logger.SetAsynChronous()
 	logger.SetOutput(CONSOLE)
 
-	logger.Info("info")
-	logger.Infof("info: %d", 30)
+	for i := 0; i < 1000; i++ {
+		logger.Info(i)
+		logger.Infof("i: %d", i)
+	}
 
 	logger.Close()
 }
