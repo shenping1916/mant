@@ -44,7 +44,7 @@ func (f *FileObject) DeleteOld() {
 				return nil
 			})
 		}
-        f()
+		f()
 
 		now := time.Now()
 		next := now.Add(time.Hour * 24)
