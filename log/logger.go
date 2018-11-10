@@ -22,7 +22,7 @@ var (
 	CONSOLE   = "console"
 	FILE      = "file"
 	MULTIFILE = "multifile"
-	SYSLOG    = "syslog"
+	//SYSLOG    = "syslog"
 )
 
 type Level uint
@@ -237,7 +237,7 @@ func (l *Logger) SetOutput(adapter string, arg ...map[string]interface{}) {
 		} else {
 			return
 		}
-	case SYSLOG:
+	//case SYSLOG:
 	}
 }
 
@@ -417,7 +417,6 @@ func (l *Logger) CallDepth() (file_ string, line_ int) {
 func (l *Logger) WriteTo(p []byte) {
 	if len(l.writer) == 0 {
 		panic(ERRWRITERS)
-		return
 	}
 
 	for _, v := range l.writer {

@@ -157,8 +157,10 @@ func (c *ConnObject) DialFactory() {
 			} else if strings.HasPrefix(c.nety, "tcp") {
 				tcpAddr, _ := net.ResolveTCPAddr(c.nety, addr_)
 				conn, err := net.DialTCP(c.nety, nil, tcpAddr)
+
 				switch err {
 				case nil:
+					conn.SetNoDelay(false)
 					c.conns = append(c.conns, conn)
 					goto LOOP
 				default:
