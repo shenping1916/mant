@@ -16,8 +16,8 @@ import (
 )
 
 var (
-	TCP     =    regexp.MustCompile(`^tcp\d{0,1}`)
-	UDP     =    regexp.MustCompile(`^udp\d{0,1}`)
+	TCP = regexp.MustCompile(`^tcp\d{0,1}`)
+	UDP = regexp.MustCompile(`^udp\d{0,1}`)
 )
 
 var PackVersion = [2]byte{'V', '1'}
@@ -29,12 +29,12 @@ var PackVersion = [2]byte{'V', '1'}
 // is returned, otherwise it is filtered.
 func SplitFn() bufio.SplitFunc {
 	return func(data []byte, atEOF bool) (advance int, token []byte, err error) {
-		if !atEOF && data[0] == 'V'{
+		if !atEOF && data[0] == 'V' {
 			if len(data) > 4 {
 				length := int16(0)
 				binary.Read(bytes.NewReader(data[2:4]), binary.BigEndian, &length)
-				if int(length) + 4 <= len(data) {
-					return int(length) + 4, data[:int(length)+4],nil
+				if int(length)+4 <= len(data) {
+					return int(length) + 4, data[:int(length)+4], nil
 				}
 			}
 		}
@@ -44,9 +44,9 @@ func SplitFn() bufio.SplitFunc {
 }
 
 type Protocol struct {
-	Version     [2]byte  `json:"version"`
-	DataLength  int16    `json:"data_length"`
-	Data        []byte   `json:"data"`
+	Version    [2]byte `json:"version"`
+	DataLength int16   `json:"data_length"`
+	Data       []byte  `json:"data"`
 }
 
 // Pack method provides the function of the network byte
@@ -80,17 +80,17 @@ func (p *Protocol) Unpack(r io.Reader) error {
 }
 
 // Formatted string output.
-func (p *Protocol) String() string{
+func (p *Protocol) String() string {
 	data, _ := json.Marshal(p)
 	return base.BytesToString(data)
 }
 
 type ConnObject struct {
 	sync.RWMutex
-	nety    string
-	addrs   []string
-	conns   []net.Conn
-	pool    *sync.Pool
+	nety  string
+	addrs []string
+	conns []net.Conn
+	pool  *sync.Pool
 }
 
 // NewConnObject is an initialization constructor
@@ -127,7 +127,7 @@ func (c *ConnObject) SetNetworkType(nettype string) {
 		}
 
 		if c.nety == "" {
-			panic(ERRNETTYPE)
+			panic(ErrNetType)
 		}
 	} else {
 		return
@@ -140,10 +140,10 @@ func (c *ConnObject) SetNetworkType(nettype string) {
 // number of retries will be 3.
 func (c *ConnObject) DialFactory() {
 	for _, addr := range c.addrs {
-		addr_ := addr
+		a := addr
 		for i := 3; i > 0; i-- {
 			if strings.HasPrefix(c.nety, "udp") {
-				udpAddr, _ := net.ResolveUDPAddr(c.nety, addr_)
+				udpAddr, _ := net.ResolveUDPAddr(c.nety, a)
 				conn, err := net.DialUDP(c.nety, nil, udpAddr)
 				switch err {
 				case nil:
@@ -155,7 +155,7 @@ func (c *ConnObject) DialFactory() {
 					continue
 				}
 			} else if strings.HasPrefix(c.nety, "tcp") {
-				tcpAddr, _ := net.ResolveTCPAddr(c.nety, addr_)
+				tcpAddr, _ := net.ResolveTCPAddr(c.nety, a)
 				conn, err := net.DialTCP(c.nety, nil, tcpAddr)
 
 				switch err {
@@ -170,8 +170,8 @@ func (c *ConnObject) DialFactory() {
 				}
 			}
 		}
-	    LOOP:
-		    continue
+	LOOP:
+		continue
 	}
 }
 
@@ -179,20 +179,20 @@ func (c *ConnObject) DialFactory() {
 // the established network connection.
 func (c *ConnObject) Writing(p []byte) error {
 	c.Lock()
-	p_ := p[2:]
-	for i, j := 0, len(c.conns); i < j; i ++ {
+	pIndex := p[2:]
+	for i, j := 0, len(c.conns); i < j; i++ {
 		co := c.conns[i]
 		if co != nil {
 			if strings.HasPrefix(c.nety, "udp") {
-				_, err := co.Write(p_)
+				_, err := co.Write(pIndex)
 				if err != nil {
 					fmt.Fprintln(os.Stderr, "Network write error: ", err)
 				}
 			} else if strings.HasPrefix(c.nety, "tcp") {
 				g := c.pool.Get().(*Protocol)
 				g.Version = PackVersion
-				g.DataLength = int16(len(p_))
-				g.Data = p_
+				g.DataLength = int16(len(pIndex))
+				g.Data = pIndex
 
 				// tcp packet
 				if err := g.Pack(co); err != nil {

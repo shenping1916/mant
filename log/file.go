@@ -12,19 +12,19 @@ import (
 )
 
 var (
-	Flag = os.O_RDWR|os.O_APPEND|os.O_CREATE
+	Flag = os.O_RDWR | os.O_APPEND | os.O_CREATE
 	Perm = 0660
 )
 
 type FileObject struct {
 	sync.RWMutex
-	file          *os.File
-	path          string
-	flag          int
-	perm          os.FileMode
+	file *os.File
+	path string
+	flag int
+	perm os.FileMode
 
 	// just for multifile
-	level         int
+	level int
 
 	isRotate      bool
 	isRotateDaily bool
@@ -35,8 +35,8 @@ type FileObject struct {
 
 // NewConsoleObject is an initialization constructor
 // that returns a FileObject pointer object.
-func NewFileObject(path string, rotate,compress,daily bool, opts ...RotateOption) *FileObject {
-	option := default_rotate
+func NewFileObject(path string, rotate, compress, daily bool, opts ...RotateOption) *FileObject {
+	option := defaultRotate
 	for _, o := range opts {
 		o(&option)
 	}
@@ -77,10 +77,10 @@ func (f *FileObject) Open() (*os.File, error) {
 	if f.file == nil {
 		// determine if the log directory exists
 		// create if it does not exist
-		path_ := path.Dir(f.path)
-		_, err := os.Stat(path_)
+		pathSplit := path.Dir(f.path)
+		_, err := os.Stat(pathSplit)
 		if err != nil && os.IsNotExist(err) {
-			if err := f.Create(path_); err != nil {
+			if err := f.Create(pathSplit); err != nil {
 				return nil, err
 			}
 		}
@@ -91,9 +91,9 @@ func (f *FileObject) Open() (*os.File, error) {
 			return nil, err
 		}
 		return fd, nil
-	} else {
-		return f.file, nil
 	}
+
+	return f.file, nil
 }
 
 // Create is used to create a log directory.
@@ -119,7 +119,7 @@ func (f *FileObject) InitStat() {
 // InitLine is used to get the total number of rows in the log file.
 // If the file is empty, it returns 0.
 func (f *FileObject) InitLine() int64 {
-	var line int64 = 0
+	var line int64
 	f.RLock()
 	scanner := bufio.NewScanner(f.file)
 	scanner.Split(bufio.ScanLines)
@@ -177,8 +177,8 @@ func (f *FileObject) Writing(p []byte) error {
 	}
 
 	f.Lock()
-	p_ := p[2:]
-	_, err := f.file.Write(p_)
+	pIndex := p[2:]
+	_, err := f.file.Write(pIndex)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Log file write failed: ", err)
 	} else {

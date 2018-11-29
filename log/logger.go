@@ -31,19 +31,19 @@ type Level uint
 // Logs can be written to any destination that implements the io.writer
 // method, supporting both synchronous and asynchronous methods.
 type Logger struct {
-	mu         sync.Mutex
-	level      Level
-	prefix     string
-	linkbreak  string
-	calldepth  int
-	colourful  colourwrapper
-	buf        *bytes.Buffer
-	writer     []Writer
-	flag       bool
-	longed     bool
-	async      bool
-	asynch     chan []byte
-	asynstop   chan struct{}
+	mu        sync.Mutex
+	level     Level
+	prefix    string
+	linkbreak string
+	calldepth int
+	colourful colourwrapper
+	buf       *bytes.Buffer
+	writer    []Writer
+	flag      bool
+	longed    bool
+	async     bool
+	asynch    chan []byte
+	asynstop  chan struct{}
 }
 
 // NewLogger is a constructor that returns a pointer to the Logger instance.
@@ -67,7 +67,7 @@ func NewLogger(depth int, level ...Level) *Logger {
 		case LEVELDEBUG, LEVELINFO, LEVELWARN, LEVELERROR, LEVELFATAL:
 			logger.SetLevel(l)
 		default:
-			panic(ERRLEVEL)
+			panic(ErrLevel)
 		}
 	} else {
 		logger.SetLevel(LEVELINFO)
@@ -109,9 +109,9 @@ func (l *Logger) SetLinkBeak() string {
 
 	if runtime.GOOS == "windows" {
 		return "\r\n"
-	} else {
-		return "\n"
 	}
+
+	return "\n"
 }
 
 // Set the log prefix
@@ -173,9 +173,9 @@ func (l *Logger) SetOutput(adapter string, arg ...map[string]interface{}) {
 	switch adapter {
 	case CONN:
 		if len(arg) > 0 {
-			var tmp struct{
-				nettype    string
-				addrs      []string
+			var tmp struct {
+				nettype string
+				addrs   []string
 			}
 
 			for key, value := range arg[0] {
@@ -197,7 +197,7 @@ func (l *Logger) SetOutput(adapter string, arg ...map[string]interface{}) {
 		l.writer = append(l.writer, c)
 	case FILE, MULTIFILE:
 		if len(arg) > 0 {
-			var tmp struct{
+			var tmp struct {
 				path          string
 				isRotate      bool
 				isRotateDaily bool
@@ -237,7 +237,7 @@ func (l *Logger) SetOutput(adapter string, arg ...map[string]interface{}) {
 		} else {
 			return
 		}
-	//case SYSLOG:
+		//case SYSLOG:
 	}
 }
 
@@ -245,9 +245,9 @@ func (l *Logger) SetOutput(adapter string, arg ...map[string]interface{}) {
 func (l *Logger) MBtoBytes(u int64) int64 {
 	if u > 0 {
 		return u << 20
-	} else {
-		return default_rotate.MaxSize
 	}
+
+	return defaultRotate.MaxSize
 }
 
 // LevelString method writes a log slice greater than or equal
@@ -390,7 +390,7 @@ func (l *Logger) Wrapperf(level string, format string, v ...interface{}) {
 	} else {
 		out = l.buf.String()
 	}
-	
+
 	b := base.StringToBytes(out)
 	if l.async {
 		l.asynch <- b
@@ -401,11 +401,11 @@ func (l *Logger) Wrapperf(level string, format string, v ...interface{}) {
 
 // CallDepth gets the file name (short path/full path) and line
 // number of the runtime according to the depth set by the user.
-func (l *Logger) CallDepth() (file_ string, line_ int) {
-	_, file_, line_, ok := runtime.Caller(l.calldepth)
+func (l *Logger) CallDepth() (file string, line int) {
+	_, file, line, ok := runtime.Caller(l.calldepth)
 	if !ok {
-		file_ = "???"
-		line_ = 0
+		file = "???"
+		line = 0
 	}
 
 	return
@@ -416,7 +416,7 @@ func (l *Logger) CallDepth() (file_ string, line_ int) {
 // their Writing method to write all assembled log bytes.
 func (l *Logger) WriteTo(p []byte) {
 	if len(l.writer) == 0 {
-		panic(ERRWRITERS)
+		panic(ErrWriters)
 	}
 
 	for _, v := range l.writer {

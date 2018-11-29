@@ -11,10 +11,10 @@ import (
 
 // Default configuration for rotation,
 // included: maxlines、maxsize、max
-var default_rotate = Rotate{
-	MaxLines: 10000,       // num:  10000
-	MaxSize: 150 << 20,    // size: 150MB
-	MaxKeepDays: 7,        // days: 7days
+var defaultRotate = Rotate{
+	MaxLines:    10000,     // num:  10000
+	MaxSize:     150 << 20, // size: 150MB
+	MaxKeepDays: 7,         // days: 7days
 }
 
 var DefaultTimeFormat = "20060102150405"
@@ -102,7 +102,7 @@ func (f *FileObject) DoRotate() error {
 		zipName := strings.Replace(f.path, filepath.Ext(f.path), splice, 1)
 
 		select {
-		case <- f.compress.ctx.Done():
+		case <-f.compress.ctx.Done():
 			return nil
 		case f.compress.taskQueue <- f.compress.DoCompress(zipName, path.Dir(f.path), []string{filepath.Base(fName)}):
 		}
@@ -121,8 +121,7 @@ func (f *FileObject) RotateBySizes() bool {
 
 func (f *FileObject) RotateByDaily() bool {
 	t := f.rotate.CurrentTime
-	t_ := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location()).AddDate(0, 0, 1)
-	tm := t_.Unix()
+	tm := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location()).AddDate(0, 0, 1).Unix()
 
 	return time.Now().Unix() > tm
 }

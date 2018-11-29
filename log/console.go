@@ -27,8 +27,8 @@ func (c *ConsoleObject) Writing(p []byte) error {
 	}
 
 	c.mu.Lock()
-	p_ := p[2:]
-	_, err := c.w.Write(p_)
+	pIndex := p[2:]
+	_, err := c.w.Write(pIndex)
 	if err != nil {
 		return err
 	}
