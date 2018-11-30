@@ -299,8 +299,12 @@ func (l *Logger) Async() {
 	}
 }
 
-// The global unique log processing entry, after receiving the
-// log information of each level, processing.
+// Wrapper implements a global log wrapper
+// According to the log level and log information, the
+// logs are assembled in the specified format. If the
+// log has asynchronous mode enabled, it will be sent
+// to the asynchronous queue, otherwise it will be passed
+// directly to the log writers.
 func (l *Logger) Wrapper(level string, v ...interface{}) {
 	l.format(level, time.Now())
 
@@ -349,8 +353,12 @@ func (l *Logger) Wrapper(level string, v ...interface{}) {
 	}
 }
 
-// The global unique log processing entry, after receiving the
-// log information of each level, processing.
+// Wrapperf implements a global formatted log wrapper
+// According to the log level and log information, the
+// logs are assembled in the specified format. If the
+// log has asynchronous mode enabled, it will be sent
+// to the asynchronous queue, otherwise it will be passed
+// directly to the log writers.
 func (l *Logger) Wrapperf(level string, format string, v ...interface{}) {
 	l.format(level, time.Now())
 
@@ -411,7 +419,7 @@ func (l *Logger) CallDepth() (file string, line int) {
 	return
 }
 
-// Writeto is the globally unique log output point that iterates
+// WriteTo is the globally unique log output point that iterates
 // over all adapters that implement the Writer interface, calling
 // their Writing method to write all assembled log bytes.
 func (l *Logger) WriteTo(p []byte) {

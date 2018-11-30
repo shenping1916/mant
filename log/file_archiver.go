@@ -7,16 +7,16 @@ import (
 	"os"
 )
 
-type task func() error
+type Task func() error
 
 type Compress struct {
-	taskQueue chan task
+	taskQueue chan Task
 	ctx       context.Context
 	cancel    context.CancelFunc
 }
 
 // Closures implement asynchronous compression.
-func (c Compress) DoCompress(zipName string, path string, sources []string) task {
+func (c Compress) DoCompress(zipName string, path string, sources []string) Task {
 	return func() error {
 		// archiver
 		err := archiver.Zip.Make(zipName, sources)

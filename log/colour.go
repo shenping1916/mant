@@ -8,25 +8,25 @@ import (
 const capital = "\x1b"
 
 const (
-	FgBlack = iota + 30
-	FgRed
-	FgGreen
-	FgYellow
-	FgBule
-	FgMagenta
-	FgCyan
-	FgWhite
+	fgBlack = iota + 30
+	fgRed
+	fgGreen
+	fgYellow
+	fgBule
+	fgMagenta
+	fgCyan
+	fgWhite
 )
 
 const (
-	BgBlack = iota + 40
-	BgRed
-	BgGreen
-	BgYellow
-	BgBule
-	BgMagenta
-	BgCyan
-	BgWhite
+	bgBlack = iota + 40
+	bgRed
+	bgGreen
+	bgYellow
+	bgBule
+	bgMagenta
+	bgCyan
+	bgWhite
 )
 
 type colourwrapper interface {
@@ -41,7 +41,7 @@ type colourwrapper interface {
 }
 
 type Colour struct {
-	capital  string
+	capital string
 }
 
 // NewColour is an initialization constructor
@@ -56,7 +56,7 @@ func NewColour() *Colour {
 // digits of the original log: level+space, and format the
 // log content from the third digit to the last digit, and
 // finally splicing all the contents and returning.
-func (c * Colour) ColourOutPut(buf *bytes.Buffer, level string, msg string) string {
+func (c *Colour) ColourOutPut(buf *bytes.Buffer, level string, msg string) string {
 	levelFg := c.ColourForeGround(level)
 	levelBg := c.ColourBackGround()
 
@@ -77,18 +77,18 @@ func (c * Colour) ColourOutPut(buf *bytes.Buffer, level string, msg string) stri
 
 // ColourForeGround sets the corresponding foreground color
 // according to the log level.
-func (c * Colour) ColourForeGround(level string) int {
+func (c *Colour) ColourForeGround(level string) int {
 	switch level {
 	case "debug", "DEBUG":
-		return FgMagenta
+		return fgMagenta
 	case "info", "INFO":
-		return FgBule
+		return fgBule
 	case "warn", "WARN":
-		return FgYellow
+		return fgYellow
 	case "error", "ERROR":
-		return FgGreen
+		return fgGreen
 	case "fatal", "FATAL":
-		return FgRed
+		return fgRed
 	}
 
 	return 0
@@ -96,7 +96,6 @@ func (c * Colour) ColourForeGround(level string) int {
 
 // ColourBackGround sets the log background color, unified
 // to black.
-func (c * Colour) ColourBackGround() int {
-	return BgBlack
+func (c *Colour) ColourBackGround() int {
+	return bgBlack
 }
-

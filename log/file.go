@@ -59,7 +59,7 @@ func NewFileObject(path string, rotate, compress, daily bool, opts ...RotateOpti
 
 	// log compression configuration
 	obj.compress = Compress{}
-	obj.compress.taskQueue = make(chan task, 20)
+	obj.compress.taskQueue = make(chan Task)
 	obj.compress.ctx, obj.compress.cancel = context.WithCancel(context.Background())
 	go obj.compress.TaskListen()
 

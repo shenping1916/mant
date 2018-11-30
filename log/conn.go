@@ -113,14 +113,14 @@ func NewConnObject(nettype string, addrs []string) *ConnObject {
 
 // SetNetworkType determines the type of connection based
 // on the incoming nettype, trying to make a regular match.
-func (c *ConnObject) SetNetworkType(nettype string) {
+func (c *ConnObject) SetNetworkType(netType string) {
 	c.Lock()
 	defer c.Unlock()
 
-	if nettype != "" {
+	if netType != "" {
 		regexps := [2]regexp.Regexp{*TCP, *UDP}
 		for _, reg := range regexps {
-			match := reg.FindStringSubmatch(strings.ToLower(nettype))
+			match := reg.FindStringSubmatch(strings.ToLower(netType))
 			if len(match) > 0 {
 				c.nety = match[0]
 			}

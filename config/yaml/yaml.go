@@ -32,9 +32,9 @@ func (y *Yaml) LoadFromFile(path string) error {
 	}
 	defer file.Close()
 
-    // read files line by line
-    if err := y.ReadByLine(file); err != nil {
-    	return fmt.Errorf("Error reading file: %v", err)
+	// read files line by line
+	if err := y.ReadByLine(file); err != nil {
+		return fmt.Errorf("Error reading file: %v", err)
 	}
 
 	return nil
@@ -43,9 +43,9 @@ func (y *Yaml) LoadFromFile(path string) error {
 func (y *Yaml) LineBeak() byte {
 	if runtime.GOOS == "windows" {
 		return '\r' + '\n'
-	} else {
-		return '\n'
 	}
+
+	return '\n'
 }
 
 func (y *Yaml) ReadByLine(r io.Reader) error {
@@ -73,5 +73,3 @@ func (y *Yaml) Marshaler(input interface{}) error {
 func (y *Yaml) Unmarshaler(input []byte, outout interface{}) error {
 	return nil
 }
-
-
