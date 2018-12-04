@@ -114,8 +114,7 @@ func (l *Logger) SetLinkBeak() string {
 	return "\n"
 }
 
-// Set the log prefix
-// In the header of a complete log.
+// SetPrefix sets the log header prefix.
 func (l *Logger) SetPrefix(prefix string) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -144,7 +143,7 @@ func (l *Logger) SetLonged() {
 	l.longed = true
 }
 
-// Whether the log enables asynchronous mode.
+// SetAsynChronous sets the log mode to asynchronous.
 func (l *Logger) SetAsynChronous(msgLen ...int) {
 	if l.async {
 		return
@@ -164,7 +163,7 @@ func (l *Logger) SetAsynChronous(msgLen ...int) {
 	go l.Async()
 }
 
-// Setoutput is used to set the log output to any destination
+// SetOutput is used to set the log output to any destination
 // that implements the io.writer method.
 func (l *Logger) SetOutput(adapter string, arg ...map[string]interface{}) {
 	l.mu.Lock()
@@ -189,8 +188,6 @@ func (l *Logger) SetOutput(adapter string, arg ...map[string]interface{}) {
 
 			conn := NewConnObject(tmp.nettype, tmp.addrs)
 			l.writer = append(l.writer, conn)
-		} else {
-			return
 		}
 	case CONSOLE:
 		c := NewConsoleObject()
@@ -234,14 +231,12 @@ func (l *Logger) SetOutput(adapter string, arg ...map[string]interface{}) {
 				multi := NewMultiFileObject(tmp.path, l.LevelString(), tmp.isRotate, tmp.isCompress, tmp.isRotateDaily, tmp.maxLines, tmp.maxSize, tmp.maxKeepDays)
 				l.writer = append(l.writer, multi)
 			}
-		} else {
-			return
 		}
 		//case SYSLOG:
 	}
 }
 
-// Convert MB to B.
+// MBtoBytes converts MB to B.
 func (l *Logger) MBtoBytes(u int64) int64 {
 	if u > 0 {
 		return u << 20

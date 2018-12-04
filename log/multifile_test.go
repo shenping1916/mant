@@ -8,12 +8,12 @@ func TestNewMultiFileObject(t *testing.T) {
 	logger.SetColour()
 	logger.SetAsynChronous()
 	logger.SetOutput(MULTIFILE, map[string]interface{}{
-		"path": "/Users/shenping/Project/golang/src/mant/test",
-		"rotate": true,
-		"daily": true,
-		"compress": true,
-		"maxlines": int64(100),
-		"maxsize": int64(100),
+		"path":        "/Users/shenping/Project/golang/src/mant/test",
+		"rotate":      true,
+		"daily":       true,
+		"compress":    true,
+		"maxlines":    int64(100),
+		"maxsize":     int64(100),
 		"maxkeepdays": 30,
 	})
 
@@ -46,12 +46,12 @@ func BenchmarkNewLogger(b *testing.B) {
 	logger.SetColour()
 	logger.SetAsynChronous()
 	logger.SetOutput(MULTIFILE, map[string]interface{}{
-		"path": "/Users/shenping/Project/golang/src/mant/test",
-		"rotate": true,
-		"daily": true,
-		"compress": true,
-		"maxlines": int64(1000),
-		"maxsize": int64(100),
+		"path":        "/Users/shenping/Project/golang/src/mant/test",
+		"rotate":      true,
+		"daily":       true,
+		"compress":    true,
+		"maxlines":    int64(100),
+		"maxsize":     int64(100),
 		"maxkeepdays": 30,
 	})
 

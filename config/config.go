@@ -5,61 +5,58 @@ import (
 )
 
 const (
-	ParseJson    =   0x1
-	ParseYaml    =   0x2
-	ParseToml    =   0x3
-	ParseXml     =   0x4
-	ParseUnkown  =   0x5
+	ParseJSON    = 0x1
+	ParseYAML    = 0x2
+	ParseTOML    = 0x3
+	ParseXML     = 0x4
+	ParseUnknown = 0x5
 )
 
 var (
-	ERRORNAMEORPATH = errors.New("Name or path cannot be empty!")
+	ErrNameOrPath = errors.New("name or path can't be empty")
 )
 
-type ConfigParse interface {
+type Configer interface {
 	//
-	Marshaler(input interface{}) error
+	Marshal(input interface{}) error
 
 	//
-	Unmarshaler(input []byte, outout interface{}) error
+	Unmarshal(input []byte, output interface{}) error
 
-    //
-    LoadFromFile(path string) error
+	//
+	LoadFromFile(path string) error
 
 	//
 	Close()
 }
 
 type Config struct {
-	Name    string
-	Path    string
+	Name string
+	Path string
 }
 
 func NewConfig(name string, path string) *Config {
 	config := &Config{}
 	if name == "" || path == "" {
-		panic(ERRORNAMEORPATH)
+		panic(ErrNameOrPath)
 	}
 	config.Name = name
 	config.Path = path
+	config
 	return config
 }
 
 func (c *Config) Parser() uint {
 	switch c.Name {
 	case "json":
-		return ParseJson
+		return ParseJSON
 	case "yaml":
-		return ParseYaml
+		return ParseYAML
 	case "toml":
-		return ParseToml
+		return ParseTOML
 	case "xml":
-		return ParseXml
+		return ParseXML
 	default:
-		return ParseUnkown
+		return ParseUnknown
 	}
-
-	return 0
 }
-
-

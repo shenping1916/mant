@@ -23,14 +23,13 @@ type FileObject struct {
 	flag int
 	perm os.FileMode
 
-	// just for multifile
-	level int
-
+	// bool condition
 	isRotate      bool
 	isRotateDaily bool
 	isCompress    bool
-	rotate        Rotate
-	compress      Compress
+
+	rotate   Rotate
+	compress Compress
 }
 
 // NewConsoleObject is an initialization constructor
@@ -59,7 +58,7 @@ func NewFileObject(path string, rotate, compress, daily bool, opts ...RotateOpti
 
 	// log compression configuration
 	obj.compress = Compress{}
-	obj.compress.taskQueue = make(chan Task)
+	obj.compress.taskQueue = make(chan Task, 20)
 	obj.compress.ctx, obj.compress.cancel = context.WithCancel(context.Background())
 	go obj.compress.TaskListen()
 
