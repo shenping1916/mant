@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"mant/core/base"
+	"os"
 	"strings"
 	"sync"
 )
@@ -27,7 +28,7 @@ type lists [][]interface{}
 type Yaml struct {
 	sync.RWMutex
 	Reader  io.Reader
-	Repeat  map[string]interface{}
+	Repeat  map[string]map[string]interface{}
 	Data    map[string]interface{}
 	Segment []segment
 	Lists   lists
@@ -43,7 +44,7 @@ func init() {
 
 func NewYaml() *Yaml {
 	yaml := new(Yaml)
-	yaml.Repeat = make(map[string]interface{})
+	yaml.Repeat = make(map[string]map[string]interface{})
 	yaml.Data = make(map[string]interface{})
 	yaml.Segment = yaml.Segment[:0]
 
@@ -91,11 +92,10 @@ func (y *Yaml) ParseData() error {
 				// like(a:  b)
 				if Regexp_KeyValuePair.MatchString(line) {
 					y.KeyValuePair(line, y.Data)
-
 					continue
 				}
 
-				if s.key != "" && len(s.value) > 0 {
+				if s.key != "" {
 					y.Segment = append(y.Segment, s)
 				}
 
@@ -110,7 +110,7 @@ func (y *Yaml) ParseData() error {
 			}
 		}
 
-		if s.key != "" && len(s.value) > 0 {
+		if s.key != "" {
 			y.Segment = append(y.Segment, s)
 		}
 
@@ -129,13 +129,18 @@ func (y *Yaml) Discrete(segments []segment) {
 		switch ok {
 		case Regexp_EndWithFold.MatchString(s.key):
 			// like(a: >)
-			y.KeyFoldPair(&s)
-		case Regexp_EndwithVertical.MatchString(s.key):
+			y.KeyFoldPair(&s, y.Data)
+		case Regexp_EndWithVertical.MatchString(s.key):
 			// like(a: |)
-			y.KeyVerticalPair(&s)
+			y.KeyVerticalPair(&s, y.Data)
 		case Regexp_Anchor.MatchString(s.key):
 			// like(a: &id001)
 			y.KeyAnchor(&s)
+		case Regexp_Asterisk.MatchString(s.key):
+			// ike(a: *id001)
+			y.KeyAsterisk(s.key)
+		default:
+			fmt.Println(s)
 		}
 
 		// like(server:
@@ -158,10 +163,48 @@ func (y *Yaml) Array(s *segment) {
 	}
 }
 
-func (y *Yaml) KeyAnchor(s *segment) {
-	keySplit := strings.Split(s.key, "&")
+func (y *Yaml) KeyAsterisk(line string) {
+	var k string
+	var v interface{}
+	keySplit := strings.Split(line, "*")
+	if len(keySplit) == 2 {
+		for index, value := range keySplit {
+			if index&0x1 == 0 {
+				k = strings.TrimRight(value, ": ")
+			} else {
+				v = value
+			}
+		}
+	}
 
+	if y.Repeat == nil {
+		fmt.Fprintln(os.Stderr, "map isn't initialized")
+		return
+	}
+
+	if words, ok := y.Repeat[v.(string)]; ok {
+		for key, value := range words {
+			_key := strings.Split(key, ".")
+			newKey := k + "." + _key[1]
+
+			y.Lock()
+			y.Data[newKey] = value
+			y.Unlock()
+		}
+	}
+}
+
+func (y *Yaml) KeyAnchor(s *segment) {
 	var realKey, anchorKey string
+	var collect = make(map[string]interface{})
+
+	defer func() {
+		y.Lock()
+		y.Repeat[anchorKey] = collect
+		y.Unlock()
+	}()
+
+	keySplit := strings.Split(s.key, "&")
 	if len(keySplit) == 2 {
 		for index, value := range keySplit {
 			if index&0x1 == 0 {
@@ -172,7 +215,6 @@ func (y *Yaml) KeyAnchor(s *segment) {
 		}
 	}
 
-	fmt.Println(anchorKey)
 	seg := segment{
 		value: make(list, 0, defaultSegmentLength),
 	}
@@ -185,20 +227,13 @@ func (y *Yaml) KeyAnchor(s *segment) {
 					v = strings.TrimSpace(v)
 					newLine := realKey + "." + v
 
+					y.KeyValuePair(newLine, collect)
 					y.KeyValuePair(newLine, y.Data)
 					continue
 				}
 
-				if seg.key != "" && len(seg.value) > 0 {
-					if bytes.Equal(seg.symbol, _GREATER_THAN_SIGN) {
-						y.KeyFoldPair(&seg)
-					} else if bytes.Equal(seg.symbol, _VERTICAL_BAR) {
-						y.KeyVerticalPair(&seg)
-					}
-
-					// clear struct of segment
-					base.ClearStruct(&seg)
-				}
+				// TODO: add comment
+				y.DataFill(&seg, collect, true)
 
 				// like(a:  >)
 				if Regexp_EndWithFold.MatchString(v) {
@@ -225,16 +260,40 @@ func (y *Yaml) KeyAnchor(s *segment) {
 		}
 	}
 
-	if seg.key != "" && len(seg.value) > 0 {
-		if bytes.Equal(seg.symbol, _GREATER_THAN_SIGN) {
-			y.KeyFoldPair(&seg)
-		} else if bytes.Equal(seg.symbol, _VERTICAL_BAR) {
-			y.KeyVerticalPair(&seg)
+	y.DataFill(&seg, collect)
+}
+
+func (y *Yaml) DataFill(s *segment, m map[string]interface{}, ok ...bool) {
+	if m == nil {
+		m = make(map[string]interface{})
+	}
+
+	clear := false
+	if len(ok) > 0 {
+		clear = ok[0]
+	}
+
+	if s.key != "" && len(s.value) > 0 {
+		if bytes.Equal(s.symbol, _GREATER_THAN_SIGN) {
+			y.KeyFoldPair(s, m)
+			y.KeyFoldPair(s, y.Data)
+		} else if bytes.Equal(s.symbol, _VERTICAL_BAR) {
+			y.KeyVerticalPair(s, m)
+			y.KeyVerticalPair(s, y.Data)
+		}
+
+		if clear {
+			// clear struct of segment
+			base.ClearStruct(s)
 		}
 	}
 }
 
-func (y *Yaml) KeyVerticalPair(s *segment) {
+func (y *Yaml) KeyVerticalPair(s *segment, m map[string]interface{}) {
+	if m == nil {
+		m = make(map[string]interface{})
+	}
+
 	k := strings.TrimRight(s.key, ": |")
 	v := s.value
 	if len(v) > 0 {
@@ -254,12 +313,16 @@ func (y *Yaml) KeyVerticalPair(s *segment) {
 		valueJoin := strings.Join(Value, " ")
 
 		y.Lock()
-		y.Data[k] = valueJoin
+		m[k] = valueJoin
 		y.Unlock()
 	}
 }
 
-func (y *Yaml) KeyFoldPair(s *segment) {
+func (y *Yaml) KeyFoldPair(s *segment, m map[string]interface{}) {
+	if m == nil {
+		m = make(map[string]interface{})
+	}
+
 	k := strings.TrimRight(s.key, ": >")
 	v := s.value
 	if len(v) > 0 {
@@ -274,7 +337,7 @@ func (y *Yaml) KeyFoldPair(s *segment) {
 		valueJoin := strings.Join(Value, " ")
 
 		y.Lock()
-		y.Data[k] = valueJoin
+		m[k] = valueJoin
 		y.Unlock()
 	}
 }
