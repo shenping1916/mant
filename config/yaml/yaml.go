@@ -139,26 +139,44 @@ func (y *Yaml) Discrete(segments []segment) {
 		case Regexp_Asterisk.MatchString(s.key):
 			// ike(a: *id001)
 			y.KeyAsterisk(s.key)
-		default:
-			fmt.Println(s)
-		}
+		case Regexp_Node.MatchString(s.key):
+			if len(s.value) > 0 {
+				value := s.value[0]
+				switch value := value.(type) {
+				case string:
+					/*
+						like(server:
+								 - 120.168.117.21
+								 - 120.168.117.22
+								 - 120.168.117.23)
+						--------------------------
+						like(items:
+							 - part_no:   A4786
+							   descrip:   Water Bucket (Filled)
+							   price:     1.47
+							   quantity:  4
 
-		// like(server:
-		//        - 120.168.117.21
-		//        - 120.168.117.22
-		//        - 120.168.117.23)
-		//fmt.Println(s.key, s.value)
+							 - part_no:   E1628
+							   descrip:   High Heeled "Ruby" Slippers
+							   size:      8
+							   price:     133.7
+							   quantity:  1)
+					*/
+					if Regexp_Array.MatchString(value) {
+						y.KeyArray(&s)
+					}
+				}
+			}
+		}
 	}
 }
 
-func (y *Yaml) Array(s *segment) {
+func (y *Yaml) KeyArray(s *segment) {
 	//array := make([]interface{}, len(s.value))
 	for _, value := range s.value {
 		switch value := value.(type) {
 		case string:
-			if Regexp_Array.MatchString(value) {
-				fmt.Println(s.key, s.value)
-			}
+			fmt.Println(value)
 		}
 	}
 }
