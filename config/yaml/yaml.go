@@ -27,11 +27,10 @@ type lists [][]interface{}
 
 type Yaml struct {
 	sync.RWMutex
-	Reader  io.Reader
-	Repeat  map[string]map[string]interface{}
-	Data    map[string]interface{}
-	Segment []segment
-	Lists   lists
+	Reader io.Reader
+	Repeat map[string]map[string]interface{}
+	Data   map[string]interface{}
+	Lists  lists
 }
 
 var (
@@ -46,7 +45,6 @@ func NewYaml() *Yaml {
 	yaml := new(Yaml)
 	yaml.Repeat = make(map[string]map[string]interface{})
 	yaml.Data = make(map[string]interface{})
-	yaml.Segment = yaml.Segment[:0]
 
 	return yaml
 }
@@ -96,7 +94,7 @@ func (y *Yaml) ParseData() error {
 				}
 
 				if s.key != "" {
-					y.Segment = append(y.Segment, s)
+					y.Discrete(&s)
 				}
 
 				// clear struct of segment
@@ -111,60 +109,54 @@ func (y *Yaml) ParseData() error {
 		}
 
 		if s.key != "" {
-			y.Segment = append(y.Segment, s)
-		}
-
-		if len(y.Segment) > 0 {
-			y.Discrete(y.Segment)
+			y.Discrete(&s)
 		}
 	}
 
 	return nil
 }
 
-func (y *Yaml) Discrete(segments []segment) {
+func (y *Yaml) Discrete(s *segment) {
 	ok := true
-	for _, segment := range segments {
-		s := segment
-		switch ok {
-		case Regexp_EndWithFold.MatchString(s.key):
-			// like(a: >)
-			y.KeyFoldPair(&s, y.Data)
-		case Regexp_EndWithVertical.MatchString(s.key):
-			// like(a: |)
-			y.KeyVerticalPair(&s, y.Data)
-		case Regexp_Anchor.MatchString(s.key):
-			// like(a: &id001)
-			y.KeyAnchor(&s)
-		case Regexp_Asterisk.MatchString(s.key):
-			// ike(a: *id001)
-			y.KeyAsterisk(s.key)
-		case Regexp_Node.MatchString(s.key):
-			if len(s.value) > 0 {
-				value := s.value[0]
-				switch value := value.(type) {
-				case string:
-					/*
-						like(server:
-								 - 120.168.117.21
-								 - 120.168.117.22
-								 - 120.168.117.23)
-						--------------------------
-						like(items:
-							 - part_no:   A4786
-							   descrip:   Water Bucket (Filled)
-							   price:     1.47
-							   quantity:  4
 
-							 - part_no:   E1628
-							   descrip:   High Heeled "Ruby" Slippers
-							   size:      8
-							   price:     133.7
-							   quantity:  1)
-					*/
-					if Regexp_Array.MatchString(value) {
-						y.KeyArray(&s)
-					}
+	switch ok {
+	case Regexp_EndWithFold.MatchString(s.key):
+		// like(a: >)
+		y.KeyFoldPair(s, y.Data)
+	case Regexp_EndWithVertical.MatchString(s.key):
+		// like(a: |)
+		y.KeyVerticalPair(s, y.Data)
+	case Regexp_Anchor.MatchString(s.key):
+		// like(a: &id001)
+		y.KeyAnchor(s)
+	case Regexp_Asterisk.MatchString(s.key):
+		// ike(a: *id001)
+		y.KeyAsterisk(s.key)
+	case Regexp_Node.MatchString(s.key):
+		if len(s.value) > 0 {
+			value := s.value[0]
+			switch value := value.(type) {
+			case string:
+				/*
+					like(server:
+							 - 120.168.117.21
+							 - 120.168.117.22
+							 - 120.168.117.23)
+					--------------------------
+					like(items:
+						 - part_no:   A4786
+						   descrip:   Water Bucket (Filled)
+						   price:     1.47
+						   quantity:  4
+
+						 - part_no:   E1628
+						   descrip:   High Heeled "Ruby" Slippers
+						   size:      8
+						   price:     133.7
+						   quantity:  1)
+				*/
+				if Regexp_Array.MatchString(value) {
+					y.KeyArray(s)
 				}
 			}
 		}
@@ -196,7 +188,7 @@ func (y *Yaml) KeyAsterisk(line string) {
 	}
 
 	if y.Repeat == nil {
-		fmt.Fprintln(os.Stderr, "map isn't initialized")
+		fmt.Fprintln(os.Stderr, "map is nil")
 		return
 	}
 
