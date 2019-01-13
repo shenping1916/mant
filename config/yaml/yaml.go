@@ -23,14 +23,13 @@ type segment struct {
 }
 
 type list []interface{}
-type lists [][]interface{}
+type handle func()
 
 type Yaml struct {
 	sync.RWMutex
 	Reader io.Reader
 	Repeat map[string]map[string]interface{}
 	Data   map[string]interface{}
-	Lists  lists
 }
 
 var (
@@ -137,40 +136,94 @@ func (y *Yaml) Discrete(s *segment) {
 			value := s.value[0]
 			switch value := value.(type) {
 			case string:
-				/*
-					like(server:
-							 - 120.168.117.21
-							 - 120.168.117.22
-							 - 120.168.117.23)
-					--------------------------
-					like(items:
-						 - part_no:   A4786
-						   descrip:   Water Bucket (Filled)
-						   price:     1.47
-						   quantity:  4
-
-						 - part_no:   E1628
-						   descrip:   High Heeled "Ruby" Slippers
-						   size:      8
-						   price:     133.7
-						   quantity:  1)
-				*/
 				if Regexp_Array.MatchString(value) {
-					y.KeyArray(s)
+					if Regexp_ArrayChild.MatchString(value) {
+						/*
+							   like(server:
+										- 120.168.117.21
+										- 120.168.117.22
+										- 120.168.117.23)
+						*/
+						y.KeyArrayChild(s)
+					} else {
+						/*
+							like(items:
+								 - part_no:   A4786
+								   descrip:   Water Bucket (Filled)
+								   price:     1.47
+								   quantity:  4
+
+								 - part_no:   E1628
+								   descrip:   High Heeled "Ruby" Slippers
+								   size:      8
+								   price:     133.7
+								   quantity:  1)
+						*/
+						y.KeyArrayNode(s)
+					}
 				}
 			}
 		}
 	}
 }
 
-func (y *Yaml) KeyArray(s *segment) {
-	//array := make([]interface{}, len(s.value))
-	for _, value := range s.value {
-		switch value := value.(type) {
+func (y *Yaml) KeyArrayNode(s *segment) {
+	k := s.key
+	array := make(list, 0, len(s.value))
+
+	m := make(map[string]interface{})
+	for _, v := range s.value {
+		switch v := v.(type) {
 		case string:
-			fmt.Println(value)
+			y.Match()
+
+			if Regexp_ArrayNode.MatchString(v) {
+				if len(m) > 0 && m != nil {
+					array = append(array, m)
+					m = make(map[string]interface{})
+				} else {
+					v = strings.Trim(v, "- ")
+					// like(a:  b)
+					if Regexp_KeyValuePair.MatchString(v) {
+						y.KeyValuePair(v, m)
+					}
+				}
+			} else {
+				// like(a:  b)
+				if Regexp_KeyValuePair.MatchString(v) {
+					v = strings.TrimSpace(v)
+					y.KeyValuePair(v, m)
+				}
+			}
 		}
 	}
+
+	if len(m) > 0 && m != nil {
+		array = append(array, m)
+	}
+
+	y.Lock()
+	y.Data[k] = array
+	y.Unlock()
+}
+
+func (y *Yaml) KeyArrayChild(s *segment) {
+	k := s.key
+	array := make([]interface{}, len(s.value))
+	for index, value := range s.value {
+		switch value := value.(type) {
+		case string:
+			value = strings.TrimSpace(value)
+			value = strings.Trim(value, "- ")
+
+			array[index] = value
+		}
+	}
+	k = strings.Trim(k, ":")
+
+	y.Lock()
+	y.Data[k] = array
+	y.Unlock()
 }
 
 func (y *Yaml) KeyAsterisk(line string) {
