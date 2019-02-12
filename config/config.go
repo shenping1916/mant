@@ -21,8 +21,8 @@ var (
 
 type Configer interface {
 	ParseData() error
-	Marshal(input interface{}) ([]byte, error)
-	Unmarshal(input []byte, output interface{}) error
+	//Marshal(input interface{}) ([]byte, error)
+	//Unmarshal(input []byte, output interface{}) error
 	GetString(key string) (string, error)
 	GetStringArray(key string) ([]string, error)
 	GetInt(key string) (int, error)

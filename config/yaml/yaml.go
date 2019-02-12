@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"mant/core/base"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -17,13 +18,11 @@ var (
 )
 
 type segment struct {
-	symbol []byte
-	key    string
-	value  list
+	key   string
+	value list
 }
 
 type list []interface{}
-type handle func()
 
 type Yaml struct {
 	sync.RWMutex
@@ -34,6 +33,11 @@ type Yaml struct {
 
 var (
 	truncation = byte('\u000a')
+)
+
+var (
+	strType   = "!!str"
+	floatType = "!!float"
 )
 
 func init() {
@@ -85,7 +89,7 @@ func (y *Yaml) ParseData() error {
 				continue
 			}
 
-			if Regexp_Node.MatchString(line) {
+			if Regexp_TopNode.MatchString(line) {
 				// like(a:  b)
 				if Regexp_KeyValuePair.MatchString(line) {
 					y.KeyValuePair(line, y.Data)
@@ -93,7 +97,7 @@ func (y *Yaml) ParseData() error {
 				}
 
 				if s.key != "" {
-					y.Discrete(&s)
+					y.Match(&s, nil, nil)
 				}
 
 				// clear struct of segment
@@ -108,121 +112,31 @@ func (y *Yaml) ParseData() error {
 		}
 
 		if s.key != "" {
-			y.Discrete(&s)
+			y.Match(&s, nil, nil)
 		}
 	}
 
 	return nil
 }
 
-func (y *Yaml) Discrete(s *segment) {
-	ok := true
-
-	switch ok {
-	case Regexp_EndWithFold.MatchString(s.key):
-		// like(a: >)
-		y.KeyFoldPair(s, y.Data)
-	case Regexp_EndWithVertical.MatchString(s.key):
-		// like(a: |)
-		y.KeyVerticalPair(s, y.Data)
-	case Regexp_Anchor.MatchString(s.key):
-		// like(a: &id001)
-		y.KeyAnchor(s)
-	case Regexp_Asterisk.MatchString(s.key):
-		// ike(a: *id001)
-		y.KeyAsterisk(s.key)
-	case Regexp_Node.MatchString(s.key):
-		if len(s.value) > 0 {
-			value := s.value[0]
-			switch value := value.(type) {
-			case string:
-				if Regexp_Array.MatchString(value) {
-					if Regexp_ArrayChild.MatchString(value) {
-						/*
-							   like(server:
-										- 120.168.117.21
-										- 120.168.117.22
-										- 120.168.117.23)
-						*/
-						y.KeyArrayChild(s)
-					} else {
-						/*
-							like(items:
-								 - part_no:   A4786
-								   descrip:   Water Bucket (Filled)
-								   price:     1.47
-								   quantity:  4
-
-								 - part_no:   E1628
-								   descrip:   High Heeled "Ruby" Slippers
-								   size:      8
-								   price:     133.7
-								   quantity:  1)
-						*/
-						y.KeyArrayNode(s)
-					}
-				}
-			}
-		}
-	}
-}
-
-func (y *Yaml) KeyArrayNode(s *segment) {
-	k := s.key
-	array := make(list, 0, len(s.value))
-
-	m := make(map[string]interface{})
-	for _, v := range s.value {
-		switch v := v.(type) {
-		case string:
-			y.Match()
-
-			if Regexp_ArrayNode.MatchString(v) {
-				if len(m) > 0 && m != nil {
-					array = append(array, m)
-					m = make(map[string]interface{})
-				} else {
-					v = strings.Trim(v, "- ")
-					// like(a:  b)
-					if Regexp_KeyValuePair.MatchString(v) {
-						y.KeyValuePair(v, m)
-					}
-				}
-			} else {
-				// like(a:  b)
-				if Regexp_KeyValuePair.MatchString(v) {
-					v = strings.TrimSpace(v)
-					y.KeyValuePair(v, m)
-				}
-			}
-		}
-	}
-
-	if len(m) > 0 && m != nil {
-		array = append(array, m)
-	}
-
+func (y *Yaml) KeyArray(array *list, m map[string]interface{}) {
 	y.Lock()
-	y.Data[k] = array
+	_m := make(map[string]interface{}, len(m))
+	for k, v := range m {
+		_m[k] = v
+	}
+
+	*array = append(*array, _m)
 	y.Unlock()
+
+	m = make(map[string]interface{})
 }
 
-func (y *Yaml) KeyArrayChild(s *segment) {
-	k := s.key
-	array := make([]interface{}, len(s.value))
-	for index, value := range s.value {
-		switch value := value.(type) {
-		case string:
-			value = strings.TrimSpace(value)
-			value = strings.Trim(value, "- ")
-
-			array[index] = value
-		}
-	}
-	k = strings.Trim(k, ":")
-
+func (y *Yaml) KeyArrayChild(line string, array *list) {
 	y.Lock()
-	y.Data[k] = array
+	line = strings.TrimSpace(line)
+	line = strings.Trim(line, "- ")
+	*array = append(*array, line)
 	y.Unlock()
 }
 
@@ -278,78 +192,30 @@ func (y *Yaml) KeyAnchor(s *segment) {
 		}
 	}
 
-	seg := segment{
-		value: make(list, 0, defaultSegmentLength),
-	}
+	seg := &segment{}
 	for _, v := range s.value {
 		switch v := v.(type) {
 		case string:
-			if Regexp_ChildNode.MatchString(v) {
-				// like(a:  b)
-				if Regexp_KeyValuePair.MatchString(v) {
-					v = strings.TrimSpace(v)
-					newLine := realKey + "." + v
+			v = strings.TrimSpace(v)
+			if strings.Contains(v, ": ") {
+				if seg.key != "" {
+					y.Match(seg, nil, collect)
+					y.Match(seg, nil, y.Data)
 
-					y.KeyValuePair(newLine, collect)
-					y.KeyValuePair(newLine, y.Data)
-					continue
+					// clear struct of seg
+					base.ClearStruct(seg)
 				}
 
-				// TODO: add comment
-				y.DataFill(&seg, collect, true)
-
-				// like(a:  >)
-				if Regexp_EndWithFold.MatchString(v) {
-					v = strings.TrimSpace(v)
-					v = strings.TrimRight(v, ": >")
-					newLine := realKey + "." + v
-
-					seg.symbol = _GREATER_THAN_SIGN
-					seg.key = newLine
-				}
-
-				// like( a:  |)
-				if Regexp_ChildEndwithVertical.MatchString(v) {
-					v = strings.TrimSpace(v)
-					v = strings.TrimRight(v, ": |")
-					newLine := realKey + "." + v
-
-					seg.symbol = _VERTICAL_BAR
-					seg.key = newLine
-				}
+				newLine := realKey + "." + v
+				seg.key = newLine
 			} else {
 				seg.value = append(seg.value, v)
 			}
 		}
 	}
 
-	y.DataFill(&seg, collect)
-}
-
-func (y *Yaml) DataFill(s *segment, m map[string]interface{}, ok ...bool) {
-	if m == nil {
-		m = make(map[string]interface{})
-	}
-
-	clear := false
-	if len(ok) > 0 {
-		clear = ok[0]
-	}
-
-	if s.key != "" && len(s.value) > 0 {
-		if bytes.Equal(s.symbol, _GREATER_THAN_SIGN) {
-			y.KeyFoldPair(s, m)
-			y.KeyFoldPair(s, y.Data)
-		} else if bytes.Equal(s.symbol, _VERTICAL_BAR) {
-			y.KeyVerticalPair(s, m)
-			y.KeyVerticalPair(s, y.Data)
-		}
-
-		if clear {
-			// clear struct of segment
-			base.ClearStruct(s)
-		}
-	}
+	y.Match(seg, nil, collect)
+	y.Match(seg, nil, y.Data)
 }
 
 func (y *Yaml) KeyVerticalPair(s *segment, m map[string]interface{}) {
@@ -410,20 +276,35 @@ func (y *Yaml) KeyValuePair(line string, m map[string]interface{}) {
 		m = make(map[string]interface{})
 	}
 
-	lineSplit := strings.Split(line, ":")
+	lineSplit := strings.Split(line, ": ")
 	if len(lineSplit) == 2 {
-		var k string
-		var v interface{}
+		var _k string
+		var _v interface{}
 		for index, value := range lineSplit {
 			if index&0x1 == 0 {
-				k = value
+				_k = value
 			} else {
-				v = strings.TrimSpace(value)
+				_v = strings.TrimSpace(value)
 			}
 		}
 
 		y.Lock()
-		m[k] = v
+		switch _v := _v.(type) {
+		case string:
+			if strings.HasPrefix(_v, strType) {
+				// !!str
+				_v = strings.Trim(_v, strType+" ")
+				_v = "'" + _v + "'"
+				m[_k] = _v
+			} else if strings.HasPrefix(_v, floatType) {
+				// !!float
+				_v = strings.Trim(_v, floatType+" ")
+				f, _ := strconv.ParseFloat(_v, 64)
+				m[_k] = f
+			} else {
+				m[_k] = _v
+			}
+		}
 		y.Unlock()
 	}
 }
@@ -432,19 +313,19 @@ func (y *Yaml) ValueParse(key string) interface{} {
 	return nil
 }
 
-func (y *Yaml) Marshal(input interface{}) ([]byte, error) {
-	return []byte{}, nil
-}
-
-func (y *Yaml) Unmarshal(input []byte, output interface{}) error {
-	return nil
-}
+//func (y *Yaml) Marshal(input interface{}) ([]byte, error) {
+//	return []byte{}, nil
+//}
+//
+//func (y *Yaml) Unmarshal(input []byte, output interface{}) error {
+//	return nil
+//}
 
 func (y *Yaml) GetString(key string) (string, error) {
 	if key != "" {
 		fmt.Println("++++++++++++++++++")
 		for k, v := range y.Data {
-			fmt.Printf("key: %s  value: %s\n", k, v)
+			fmt.Printf("key: %v  value: %v\n", k, v)
 		}
 	}
 

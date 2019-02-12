@@ -1,6 +1,18 @@
----
 receipt:     Oz-Ware Purchase Invoice
 date:        2012-08-06
+items:
+- 
+  part_no:   A4786
+  descrip:   Water Bucket (Filled)
+  price:     1.47
+  quantity:  4
+
+- 
+  part_no:   E1628
+  descrip:   High Heeled "Ruby" Slippers
+  price:     133.7
+  quantity:  1
+
 customer:
   given:   Dorothy
   family:  Gale
@@ -23,22 +35,13 @@ tom:  |
   Ha nobody bike since
   Yellow read.
 
-items:
-- part_no:   A4786
-  descrip:   Water Bucket (Filled)
-  price:     1.47
-  quantity:  4
-
-- part_no:   E1628
-  descrip:   High Heeled "Ruby" Slippers
-  size:      8
-  price:     133.7
-  quantity:  1
-
 server:
     - 120.168.117.21
     - 120.168.117.22
     - 120.168.117.23
+
+kkk: !!str 123
+j: !!float    6.8523015e+5
 
 accomplishment: >
  Mark set a major league
