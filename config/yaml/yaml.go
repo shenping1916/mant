@@ -3,18 +3,19 @@ package yaml
 import (
 	"bufio"
 	"bytes"
+	"encoding/gob"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"mant/core/base"
 	"os"
-	"strconv"
 	"strings"
 	"sync"
 )
 
 var (
 	defaultSegmentLength = 1 << 6
+	defaultBufSize       = 1 << 4
 )
 
 type segment struct {
@@ -27,6 +28,7 @@ type list []interface{}
 type Yaml struct {
 	sync.RWMutex
 	Reader io.Reader
+	Buf    *bytes.Buffer
 	Repeat map[string]map[string]interface{}
 	Data   map[string]interface{}
 }
@@ -35,17 +37,14 @@ var (
 	truncation = byte('\u000a')
 )
 
-var (
-	strType   = "!!str"
-	floatType = "!!float"
-)
-
 func init() {
 	_ = (*Yaml)(nil)
 }
 
 func NewYaml() *Yaml {
 	yaml := new(Yaml)
+	yaml.Buf = new(bytes.Buffer)
+	yaml.Buf.Grow(defaultBufSize)
 	yaml.Repeat = make(map[string]map[string]interface{})
 	yaml.Data = make(map[string]interface{})
 
@@ -98,10 +97,10 @@ func (y *Yaml) ParseData() error {
 
 				if s.key != "" {
 					y.Match(&s, nil, nil)
-				}
 
-				// clear struct of segment
-				base.ClearStruct(&s)
+					// clear struct of segment
+					base.ClearStruct(&s)
+				}
 
 				s.key = line
 			} else {
@@ -120,16 +119,25 @@ func (y *Yaml) ParseData() error {
 }
 
 func (y *Yaml) KeyArray(array *list, m map[string]interface{}) {
+	y.Buf.Reset()
+
 	y.Lock()
-	_m := make(map[string]interface{}, len(m))
-	for k, v := range m {
-		_m[k] = v
+	var err error
+	encode := gob.NewEncoder(y.Buf)
+	if err = encode.Encode(m); err != nil {
+		fmt.Fprintf(os.Stderr, "encode error: %v", err.Error())
+		return
+	}
+
+	var _m map[string]interface{}
+	decode := gob.NewDecoder(y.Buf)
+	if err = decode.Decode(&_m); err != nil {
+		fmt.Fprintf(os.Stderr, "decode error: %v", err.Error())
+		return
 	}
 
 	*array = append(*array, _m)
 	y.Unlock()
-
-	m = make(map[string]interface{})
 }
 
 func (y *Yaml) KeyArrayChild(line string, array *list) {
@@ -289,228 +297,29 @@ func (y *Yaml) KeyValuePair(line string, m map[string]interface{}) {
 		}
 
 		y.Lock()
-		switch _v := _v.(type) {
-		case string:
-			if strings.HasPrefix(_v, strType) {
-				// !!str
-				_v = strings.Trim(_v, strType+" ")
-				_v = "'" + _v + "'"
-				m[_k] = _v
-			} else if strings.HasPrefix(_v, floatType) {
-				// !!float
-				_v = strings.Trim(_v, floatType+" ")
-				f, _ := strconv.ParseFloat(_v, 64)
-				m[_k] = f
-			} else {
-				m[_k] = _v
-			}
-		}
+		//switch _v := _v.(type) {
+		//case string:
+		//	if strings.HasPrefix(_v, strType) {
+		//		// !!str
+		//		_v = strings.Trim(_v, strType+" ")
+		//		_v = "'" + _v + "'"
+		//		m[_k] = _v
+		//	} else if strings.HasPrefix(_v, floatType) {
+		//		// !!float
+		//		_v = strings.Trim(_v, floatType+" ")
+		//		f, _ := strconv.ParseFloat(_v, 64)
+		//		m[_k] = f
+		//	} else if strings.HasPrefix(_v, setType) {
+		//		// !!set
+		//		_v = strings.Trim(_v, setType+" ")
+		//		f, _ := strconv.ParseFloat(_v, 64)
+		//		m[_k] = f
+		//	} else {
+		//		m[_k] = _v
+		//	}
+		//}
+
+		m[_k] = _v
 		y.Unlock()
 	}
-}
-
-func (y *Yaml) ValueParse(key string) interface{} {
-	return nil
-}
-
-//func (y *Yaml) Marshal(input interface{}) ([]byte, error) {
-//	return []byte{}, nil
-//}
-//
-//func (y *Yaml) Unmarshal(input []byte, output interface{}) error {
-//	return nil
-//}
-
-func (y *Yaml) GetString(key string) (string, error) {
-	if key != "" {
-		fmt.Println("++++++++++++++++++")
-		for k, v := range y.Data {
-			fmt.Printf("key: %v  value: %v\n", k, v)
-		}
-	}
-
-	return "", nil
-}
-
-func (y *Yaml) GetStringArray(key string) ([]string, error) {
-	if key != "" {
-
-	}
-
-	return []string{}, nil
-}
-
-func (y *Yaml) GetInt(key string) (int, error) {
-	if key != "" {
-
-	}
-
-	return int(0), nil
-}
-
-func (y *Yaml) GetIntArray(key string) ([]int, error) {
-	if key != "" {
-
-	}
-
-	return []int{}, nil
-}
-
-func (y *Yaml) GetInt16(key string) (int16, error) {
-	if key != "" {
-
-	}
-
-	return int16(0), nil
-}
-
-func (y *Yaml) GetInt16Array(key string) ([]int16, error) {
-	if key != "" {
-
-	}
-
-	return []int16{}, nil
-}
-
-func (y *Yaml) GetInt32(key string) (int32, error) {
-	if key != "" {
-
-	}
-
-	return int32(0), nil
-}
-
-func (y *Yaml) GetInt32Array(key string) ([]int32, error) {
-	if key != "" {
-
-	}
-
-	return []int32{}, nil
-}
-
-func (y *Yaml) GetInt64(key string) (int64, error) {
-	if key != "" {
-
-	}
-
-	return int64(0), nil
-}
-
-func (y *Yaml) GetInt64Array(key string) ([]int64, error) {
-	if key != "" {
-
-	}
-
-	return []int64{}, nil
-}
-
-func (y *Yaml) GetUint(key string) (uint, error) {
-	if key != "" {
-
-	}
-
-	return uint(0), nil
-}
-
-func (y *Yaml) GetUintArray(key string) ([]uint, error) {
-	if key != "" {
-
-	}
-
-	return []uint{}, nil
-}
-
-func (y *Yaml) GetUint16(key string) (uint16, error) {
-	if key != "" {
-
-	}
-
-	return uint16(0), nil
-}
-
-func (y *Yaml) GetUint16Array(key string) ([]uint16, error) {
-	if key != "" {
-
-	}
-
-	return []uint16{}, nil
-}
-
-func (y *Yaml) GetUint32(key string) (uint32, error) {
-	if key != "" {
-
-	}
-
-	return uint32(0), nil
-}
-
-func (y *Yaml) GetUint32Array(key string) ([]uint32, error) {
-	if key != "" {
-
-	}
-
-	return []uint32{}, nil
-}
-
-func (y *Yaml) GetUint64(key string) (uint64, error) {
-	if key != "" {
-
-	}
-
-	return uint64(0), nil
-}
-
-func (y *Yaml) GetUint64Array(key string) ([]uint64, error) {
-	if key != "" {
-
-	}
-
-	return []uint64{}, nil
-}
-
-func (y *Yaml) GetFloat32(key string) (float32, error) {
-	if key != "" {
-
-	}
-
-	return float32(0), nil
-}
-
-func (y *Yaml) GetFloat32Array(key string) ([]float32, error) {
-	if key != "" {
-
-	}
-
-	return []float32{}, nil
-}
-
-func (y *Yaml) GetFloat64(key string) (float64, error) {
-	if key != "" {
-
-	}
-
-	return float64(0), nil
-}
-
-func (y *Yaml) GetFloat64Array(key string) ([]float64, error) {
-	if key != "" {
-
-	}
-
-	return []float64{}, nil
-}
-
-func (y *Yaml) GetBool(key string) (bool, error) {
-	if key != "" {
-		switch key {
-		case "true", "1":
-			return true, nil
-		case "false", "0", "":
-			return false, nil
-		default:
-			return false, fmt.Errorf("invalid bool value: %s", key)
-		}
-	}
-
-	return false, nil
 }

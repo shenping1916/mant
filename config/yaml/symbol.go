@@ -12,3 +12,9 @@ var (
 	_START = []byte{45, 45, 45} // "---"
 	_END   = []byte{46, 46, 46} // "..."
 )
+
+var (
+	strType   = "!!str"
+	floatType = "!!float"
+	setType   = "!!set"
+)

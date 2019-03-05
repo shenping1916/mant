@@ -63,14 +63,14 @@ func (y *Yaml) Match(s *segment, array *list, m map[string]interface{}) {
 		// like(a: *id001)
 		y.KeyAsterisk(s.key)
 	case RegexpNode:
-		if s.value[0].(string) == "- " {
-			y.ElementReverse(s.value)
-		}
-
 		key := s.key
 		if len(s.value) > 0 {
 			m := make(map[string]interface{})
 			array := make(list, 0, len(s.value))
+
+			if s.value[0].(string) == "- " {
+				y.ElementReverse(s.value)
+			}
 
 			for _, value := range s.value {
 				switch value := value.(type) {

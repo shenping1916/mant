@@ -35,6 +35,8 @@ tom:  |
   Ha nobody bike since
   Yellow read.
 
+test: true
+
 server:
     - 120.168.117.21
     - 120.168.117.22

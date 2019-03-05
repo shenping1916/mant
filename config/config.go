@@ -46,6 +46,7 @@ type Configer interface {
 	GetFloat64(key string) (float64, error)
 	GetFloat64Array(key string) ([]float64, error)
 	GetBool(key string) (bool, error)
+	GetMap(key string) (map[string]interface{}, error)
 }
 
 type Config struct {
@@ -173,4 +174,8 @@ func (c *Config) GetFloat64Array(key string) ([]float64, error) {
 
 func (c *Config) GetBool(key string) (bool, error) {
 	return c.Load.GetBool(key)
+}
+
+func (c *Config) GetMap(key string) (map[string]interface{}, error) {
+	return c.Load.GetMap(key)
 }
