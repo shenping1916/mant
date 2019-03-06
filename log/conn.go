@@ -95,24 +95,24 @@ type ConnObject struct {
 
 // NewConnObject is an initialization constructor
 // that returns a ConnObject pointer object.
-func NewConnObject(nettype string, addrs []string) *ConnObject {
+func NewConnObject(netType string, addRs []string) *ConnObject {
 	obj := new(ConnObject)
-	obj.addrs = addrs
-	obj.conns = make([]net.Conn, 0, len(addrs))
+	obj.addrs = addRs
+	obj.conns = make([]net.Conn, 0, len(addRs))
 	obj.pool = &sync.Pool{
 		New: func() interface{} {
 			return &Protocol{}
 		},
 	}
 
-	obj.SetNetworkType(nettype)
+	obj.SetNetworkType(netType)
 	obj.DialFactory()
 
 	return obj
 }
 
 // SetNetworkType determines the type of connection based
-// on the incoming nettype, trying to make a regular match.
+// on the incoming netType, trying to make a regular match.
 func (c *ConnObject) SetNetworkType(netType string) {
 	c.Lock()
 	defer c.Unlock()
