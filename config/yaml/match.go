@@ -77,8 +77,13 @@ func (y *Yaml) Match(s *segment, array *list, m map[string]interface{}) {
 				case string:
 					if y.MatchHandle(value) == RegexpSecondNode {
 						if len(m) > 0 {
+							_key := s.key
+
 							y.Lock()
-							y.Data[s.key] = m
+							for k, v := range m {
+								s.key = _key + "." + k
+								y.Data[s.key] = v
+							}
 							m = make(map[string]interface{})
 							y.Unlock()
 						}
@@ -106,7 +111,12 @@ func (y *Yaml) Match(s *segment, array *list, m map[string]interface{}) {
 			}
 
 			if len(m) > 0 {
-				y.Data[s.key] = m
+				_key := s.key
+
+				for k, v := range m {
+					s.key = _key + "." + k
+					y.Data[s.key] = v
+				}
 			}
 			y.Unlock()
 		}

@@ -250,14 +250,29 @@ func (l *Logger) MBtoBytes(u int64) int64 {
 func (l *Logger) LevelString() []string {
 	switch l.level {
 	case LEVELDEBUG:
+		if l.flag {
+			return upper[:]
+		}
 		return lower[:]
 	case LEVELINFO:
+		if l.flag {
+			return upper[1:]
+		}
 		return lower[1:]
 	case LEVELWARN:
+		if l.flag {
+			return upper[2:]
+		}
 		return lower[2:]
 	case LEVELERROR:
+		if l.flag {
+			return upper[3:]
+		}
 		return lower[3:]
 	case LEVELFATAL:
+		if l.flag {
+			return upper[4:]
+		}
 		return lower[4:]
 	}
 
