@@ -1,6 +1,35 @@
 package yaml
 
-import "fmt"
+import (
+	"fmt"
+)
+
+const (
+	TypeString = iota
+	TypeInt
+	TypeInt16
+	TypeInt32
+	TypeInt64
+	TypeUint
+	TypeUint16
+	TypeUint32
+	TypeUint64
+	TypeFloat32
+	TypeFloat64
+	TypeBool
+	TypeMap
+	TypeStringArray
+	TypeIntArray
+	TypeInt16Array
+	TypeInt32Array
+	TypeInt64Array
+	TypeUintArray
+	TypeUint16Array
+	TypeUint32Array
+	TypeUint64Array
+	TypeFloat32Array
+	TypeFloat64Array
+)
 
 func (y *Yaml) ExistKey(key string) (interface{}, error) {
 	if value, ok := y.Data[key]; ok {
@@ -17,7 +46,7 @@ func (y *Yaml) GetString(key string) (string, error) {
 			return "", err
 		}
 
-		r := y.Reflect(value)
+		r := y.Reflect(value, TypeString)
 		if r.Error() != nil {
 			return "", r.Error()
 		}
@@ -35,7 +64,7 @@ func (y *Yaml) GetStringArray(key string) ([]string, error) {
 			return []string{}, err
 		}
 
-		r := y.Reflect(value)
+		r := y.Reflect(value, TypeStringArray)
 		if r.Error() != nil {
 			return []string{}, r.Error()
 		}
@@ -53,7 +82,7 @@ func (y *Yaml) GetInt(key string) (int, error) {
 			return 0, err
 		}
 
-		r := y.Reflect(value)
+		r := y.Reflect(value, TypeInt)
 		if r.Error() != nil {
 			return 0, r.Error()
 		}
@@ -71,7 +100,7 @@ func (y *Yaml) GetIntArray(key string) ([]int, error) {
 			return []int{}, err
 		}
 
-		r := y.Reflect(value)
+		r := y.Reflect(value, TypeIntArray)
 		if r.Error() != nil {
 			return []int{}, r.Error()
 		}
@@ -89,7 +118,7 @@ func (y *Yaml) GetInt16(key string) (int16, error) {
 			return int16(0), err
 		}
 
-		r := y.Reflect(value)
+		r := y.Reflect(value, TypeInt16)
 		if r.Error() != nil {
 			return int16(0), r.Error()
 		}
@@ -107,7 +136,7 @@ func (y *Yaml) GetInt16Array(key string) ([]int16, error) {
 			return []int16{}, err
 		}
 
-		r := y.Reflect(value)
+		r := y.Reflect(value, TypeInt16Array)
 		if r.Error() != nil {
 			return []int16{}, r.Error()
 		}
@@ -125,7 +154,7 @@ func (y *Yaml) GetInt32(key string) (int32, error) {
 			return int32(0), err
 		}
 
-		r := y.Reflect(value)
+		r := y.Reflect(value, TypeInt32)
 		if r.Error() != nil {
 			return int32(0), r.Error()
 		}
@@ -143,7 +172,7 @@ func (y *Yaml) GetInt32Array(key string) ([]int32, error) {
 			return []int32{}, err
 		}
 
-		r := y.Reflect(value)
+		r := y.Reflect(value, TypeInt32Array)
 		if r.Error() != nil {
 			return []int32{}, r.Error()
 		}
@@ -161,7 +190,7 @@ func (y *Yaml) GetInt64(key string) (int64, error) {
 			return int64(0), err
 		}
 
-		r := y.Reflect(value)
+		r := y.Reflect(value, TypeInt64)
 		if r.Error() != nil {
 			return int64(0), r.Error()
 		}
@@ -179,7 +208,7 @@ func (y *Yaml) GetInt64Array(key string) ([]int64, error) {
 			return []int64{}, err
 		}
 
-		r := y.Reflect(value)
+		r := y.Reflect(value, TypeInt64Array)
 		if r.Error() != nil {
 			return []int64{}, r.Error()
 		}
@@ -197,7 +226,7 @@ func (y *Yaml) GetUint(key string) (uint, error) {
 			return uint(0), err
 		}
 
-		r := y.Reflect(value)
+		r := y.Reflect(value, TypeUint)
 		if r.Error() != nil {
 			return uint(0), r.Error()
 		}
@@ -215,7 +244,7 @@ func (y *Yaml) GetUintArray(key string) ([]uint, error) {
 			return []uint{}, err
 		}
 
-		r := y.Reflect(value)
+		r := y.Reflect(value, TypeUintArray)
 		if r.Error() != nil {
 			return []uint{}, r.Error()
 		}
@@ -233,7 +262,7 @@ func (y *Yaml) GetUint16(key string) (uint16, error) {
 			return uint16(0), err
 		}
 
-		r := y.Reflect(value)
+		r := y.Reflect(value, TypeUint16)
 		if r.Error() != nil {
 			return uint16(0), r.Error()
 		}
@@ -251,7 +280,7 @@ func (y *Yaml) GetUint16Array(key string) ([]uint16, error) {
 			return []uint16{}, err
 		}
 
-		r := y.Reflect(value)
+		r := y.Reflect(value, TypeUint16Array)
 		if r.Error() != nil {
 			return []uint16{}, r.Error()
 		}
@@ -269,7 +298,7 @@ func (y *Yaml) GetUint32(key string) (uint32, error) {
 			return uint32(0), err
 		}
 
-		r := y.Reflect(value)
+		r := y.Reflect(value, TypeUint32)
 		if r.Error() != nil {
 			return uint32(0), r.Error()
 		}
@@ -287,7 +316,7 @@ func (y *Yaml) GetUint32Array(key string) ([]uint32, error) {
 			return []uint32{}, err
 		}
 
-		r := y.Reflect(value)
+		r := y.Reflect(value, TypeUint32Array)
 		if r.Error() != nil {
 			return []uint32{}, r.Error()
 		}
@@ -305,7 +334,7 @@ func (y *Yaml) GetUint64(key string) (uint64, error) {
 			return uint64(0), err
 		}
 
-		r := y.Reflect(value)
+		r := y.Reflect(value, TypeUint64)
 		if r.Error() != nil {
 			return uint64(0), r.Error()
 		}
@@ -323,7 +352,7 @@ func (y *Yaml) GetUint64Array(key string) ([]uint64, error) {
 			return []uint64{}, err
 		}
 
-		r := y.Reflect(value)
+		r := y.Reflect(value, TypeUint64Array)
 		if r.Error() != nil {
 			return []uint64{}, r.Error()
 		}
@@ -341,7 +370,7 @@ func (y *Yaml) GetFloat32(key string) (float32, error) {
 			return float32(0), err
 		}
 
-		r := y.Reflect(value)
+		r := y.Reflect(value, TypeFloat32)
 		if r.Error() != nil {
 			return float32(0), r.Error()
 		}
@@ -359,7 +388,7 @@ func (y *Yaml) GetFloat32Array(key string) ([]float32, error) {
 			return []float32{}, err
 		}
 
-		r := y.Reflect(value)
+		r := y.Reflect(value, TypeFloat32Array)
 		if r.Error() != nil {
 			return []float32{}, r.Error()
 		}
@@ -377,7 +406,7 @@ func (y *Yaml) GetFloat64(key string) (float64, error) {
 			return float64(0), err
 		}
 
-		r := y.Reflect(value)
+		r := y.Reflect(value, TypeFloat64)
 		if r.Error() != nil {
 			return float64(0), r.Error()
 		}
@@ -395,7 +424,7 @@ func (y *Yaml) GetFloat64Array(key string) ([]float64, error) {
 			return []float64{}, err
 		}
 
-		r := y.Reflect(value)
+		r := y.Reflect(value, TypeFloat64Array)
 		if r.Error() != nil {
 			return []float64{}, r.Error()
 		}
@@ -413,7 +442,7 @@ func (y *Yaml) GetBool(key string) (bool, error) {
 			return false, err
 		}
 
-		r := y.Reflect(value)
+		r := y.Reflect(value, TypeBool)
 		if r.Error() != nil {
 			return false, r.Error()
 		}
@@ -431,7 +460,7 @@ func (y *Yaml) GetMap(key string) (map[string]interface{}, error) {
 			return map[string]interface{}{}, err
 		}
 
-		r := y.Reflect(value)
+		r := y.Reflect(value, TypeMap)
 		if r.Error() != nil {
 			return map[string]interface{}{}, r.Error()
 		}

@@ -16,6 +16,12 @@ items:
 customer:
   given:   Dorothy
   family:  Gale
+  table:
+        - self
+        - lang
+        - project
+        - user
+        - role
 
 environments:
     dev:

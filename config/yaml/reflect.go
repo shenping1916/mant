@@ -33,30 +33,60 @@ type Decoder interface {
 	ToMap() (map[string]interface{}, error)
 }
 
-func (y *Yaml) Reflect(data interface{}) Decoder {
+func (y *Yaml) Reflect(data interface{}, _type int) Decoder {
 	if data == nil {
 		return &Nil{}
 	}
 
-	value := reflect.ValueOf(data)
-	switch value.Kind() {
-	case reflect.String:
-		return &String{value.Interface().(string)}
-	case reflect.Map:
-		return &Map{value.Interface().(map[string]interface{})}
-	case reflect.Slice:
-	case reflect.Int:
-	case reflect.Int16:
-	case reflect.Int32:
-	case reflect.Int64:
-	case reflect.Uint:
-	case reflect.Uint16:
-	case reflect.Uint32:
-	case reflect.Uint64:
-	// TODO: continue
-	case reflect.Bool:
-		fmt.Println("bool")
-		return &Bool{value.Interface().(bool)}
+	//value := reflect.ValueOf(data)
+	//switch value.Kind() {
+	//case reflect.String:
+	//	return &String{value.Interface().(string)}
+	//case reflect.Map:
+	//	return &Map{value.Interface().(map[string]interface{})}
+	//case reflect.Slice:
+	//	return &slice{value.Interface()}
+	//case reflect.Int:
+	//case reflect.Int16:
+	//case reflect.Int32:
+	//case reflect.Int64:
+	//case reflect.Uint:
+	//case reflect.Uint16:
+	//case reflect.Uint32:
+	//case reflect.Uint64:
+	//// TODO: continue
+	//case reflect.Bool:
+	//	fmt.Println("bool")
+	//	return &Bool{value.Interface().(bool)}
+	//}
+
+	switch _type {
+	case TypeString,
+		TypeInt,
+		TypeInt16,
+		TypeInt32,
+		TypeInt64,
+		TypeUint,
+		TypeUint16,
+		TypeUint32,
+		TypeUint64,
+		TypeFloat32,
+		TypeFloat64,
+		TypeBool,
+		TypeMap:
+		return &decode{data.(string)}
+	case TypeStringArray,
+		TypeIntArray,
+		TypeInt16Array,
+		TypeInt32Array,
+		TypeInt64Array,
+		TypeUintArray,
+		TypeUint16Array,
+		TypeUint32Array,
+		TypeUint64Array,
+		TypeFloat32Array,
+		TypeFloat64Array:
+		return &slice{data.(List)}
 	}
 
 	return &Invaild{fmt.Errorf("unsupported type: %v", reflect.TypeOf(data))}

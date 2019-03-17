@@ -19,7 +19,7 @@ const (
 	RegexpSecondNode           = 0x11
 )
 
-func (y *Yaml) Match(s *segment, array *list, m map[string]interface{}) {
+func (y *Yaml) Match(s *segment, array *List, m map[string]interface{}) {
 	switch y.MatchHandle(s.key) {
 	case RegexpKeyValuePair:
 		// like(a:  b)
@@ -66,7 +66,7 @@ func (y *Yaml) Match(s *segment, array *list, m map[string]interface{}) {
 		key := s.key
 		if len(s.value) > 0 {
 			m := make(map[string]interface{})
-			array := make(list, 0, len(s.value))
+			array := make(List, 0, len(s.value))
 
 			if s.value[0].(string) == "- " {
 				y.ElementReverse(s.value)
@@ -123,7 +123,7 @@ func (y *Yaml) Match(s *segment, array *list, m map[string]interface{}) {
 	}
 }
 
-func (y *Yaml) ElementReverse(array list) {
+func (y *Yaml) ElementReverse(array List) {
 	length := len(array)
 	for i, j := 0, length-1; i < length/2; i, j = i+1, j-1 {
 		array[i], array[j] = array[j], array[i]

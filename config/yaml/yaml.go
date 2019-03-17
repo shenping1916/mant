@@ -20,10 +20,10 @@ var (
 
 type segment struct {
 	key   string
-	value list
+	value List
 }
 
-type list []interface{}
+type List []interface{}
 
 type Yaml struct {
 	sync.RWMutex
@@ -73,7 +73,7 @@ func (y *Yaml) ParseData() error {
 	if y.Reader != nil {
 		b := bufio.NewReader(y.Reader)
 		s := segment{
-			value: make(list, 0, defaultSegmentLength),
+			value: make(List, 0, defaultSegmentLength),
 		}
 
 		for {
@@ -118,7 +118,7 @@ func (y *Yaml) ParseData() error {
 	return nil
 }
 
-func (y *Yaml) KeyArray(array *list, m map[string]interface{}) {
+func (y *Yaml) KeyArray(array *List, m map[string]interface{}) {
 	y.Buf.Reset()
 
 	y.Lock()
@@ -140,7 +140,7 @@ func (y *Yaml) KeyArray(array *list, m map[string]interface{}) {
 	y.Unlock()
 }
 
-func (y *Yaml) KeyArrayChild(line string, array *list) {
+func (y *Yaml) KeyArrayChild(line string, array *List) {
 	y.Lock()
 	line = strings.TrimSpace(line)
 	line = strings.Trim(line, "- ")

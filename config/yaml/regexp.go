@@ -14,5 +14,5 @@ var (
 	Regexp_Anchor               = regexp.MustCompile(`^(.*:\s+&\S+)$`)
 	Regexp_Asterisk             = regexp.MustCompile(`^(.*:\s+\*.*)$`)
 	Regexp_Array                = regexp.MustCompile(`^(-)$`)
-	Regexp_ArrayChild           = regexp.MustCompile(`^(\s*-\s+\S+[^:.*])$`)
+	Regexp_ArrayChild           = regexp.MustCompile(`^(\s*-\s+\S+)$`)
 )
