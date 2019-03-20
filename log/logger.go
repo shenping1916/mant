@@ -328,12 +328,6 @@ func (l *Logger) Wrapper(level string, v ...interface{}) {
 		_, f = path.Split(abs)
 	}
 
-	// log path(calldepth) && line number
-	l.buf.WriteString(f)
-	l.buf.WriteString(":")
-	l.buf.WriteString(strconv.Itoa(line))
-	l.buf.WriteString(" ")
-
 	// log level
 	l.buf.WriteString("[")
 	l.buf.WriteString(level)
@@ -343,6 +337,12 @@ func (l *Logger) Wrapper(level string, v ...interface{}) {
 	// write msg
 	msg := fmt.Sprint(v...)
 	l.buf.WriteString(msg)
+	l.buf.WriteString(" ")
+
+	// log path(calldepth) && line number
+	l.buf.WriteString(f)
+	l.buf.WriteString(":")
+	l.buf.WriteString(strconv.Itoa(line))
 
 	// write linkbreak
 	l.buf.WriteString(l.linkbreak)
@@ -382,12 +382,6 @@ func (l *Logger) Wrapperf(level string, format string, v ...interface{}) {
 		_, f = path.Split(abs)
 	}
 
-	// log path(calldepth) && line number
-	l.buf.WriteString(f)
-	l.buf.WriteString(":")
-	l.buf.WriteString(strconv.Itoa(line))
-	l.buf.WriteString(" ")
-
 	// log level
 	l.buf.WriteString("[")
 	l.buf.WriteString(level)
@@ -397,6 +391,12 @@ func (l *Logger) Wrapperf(level string, format string, v ...interface{}) {
 	// write msg
 	msg := fmt.Sprintf(format, v...)
 	l.buf.WriteString(msg)
+	l.buf.WriteString(" ")
+
+	// log path(calldepth) && line number
+	l.buf.WriteString(f)
+	l.buf.WriteString(":")
+	l.buf.WriteString(strconv.Itoa(line))
 
 	// write linkbreak
 	l.buf.WriteString(l.linkbreak)

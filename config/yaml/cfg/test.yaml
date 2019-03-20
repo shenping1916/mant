@@ -23,6 +23,14 @@ customer:
         - user
         - role
 
+log:
+  rotate: true
+  daily: true
+  compress: true
+  maxlines: 15000
+  maxsize: 100
+  maxkeepdays: 7
+
 environments:
     dev:
         url: http://dev.bar.com

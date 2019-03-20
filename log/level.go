@@ -33,13 +33,24 @@ func (l *Logger) String(level uint) string {
 	return ""
 }
 
+//// Println implements the LogWriter interface in the gorm package for
+//// custom logging.
+//func (l *Logger) Println(v ...interface{}) {
+//	if LEVELDEBUG >= l.level {
+//		levelstring := l.String(LEVELDEBUG)
+//		if levelstring != "" {
+//			l.Wrapper(levelstring, v...)
+//		}
+//	}
+//}
+
 // Debug provides input for debug log level and can print the most
 // detailed log information.
-func (l *Logger) Debug(args ...interface{})  {
+func (l *Logger) Debug(v ...interface{}) {
 	if LEVELDEBUG >= l.level {
 		levelstring := l.String(LEVELDEBUG)
 		if levelstring != "" {
-			l.Wrapper(levelstring, args...)
+			l.Wrapper(levelstring, v...)
 		}
 	}
 }
@@ -47,22 +58,22 @@ func (l *Logger) Debug(args ...interface{})  {
 // Debugf provides input for debugf log level and can print the most
 // detailed log information.
 // Support log formatting.
-func (l *Logger) Debugf(format string, args ...interface{})  {
+func (l *Logger) Debugf(format string, v ...interface{}) {
 	if LEVELDEBUG >= l.level {
 		levelstring := l.String(LEVELDEBUG)
 		if levelstring != "" {
-			l.Wrapperf(levelstring, format, args...)
+			l.Wrapperf(levelstring, format, v...)
 		}
 	}
 }
 
 // Info provides info level logs for displaying basic log information,
 // general user production environment.
-func (l *Logger) Info(args ...interface{})  {
+func (l *Logger) Info(v ...interface{}) {
 	if LEVELINFO >= l.level {
 		levelstring := l.String(LEVELINFO)
 		if levelstring != "" {
-			l.Wrapper(levelstring, args...)
+			l.Wrapper(levelstring, v...)
 		}
 	}
 }
@@ -70,22 +81,22 @@ func (l *Logger) Info(args ...interface{})  {
 // Infof provides infof level logs for displaying basic log information,
 // general user production environment.
 // Support log formatting.
-func (l *Logger) Infof(format string, args ...interface{})  {
+func (l *Logger) Infof(format string, v ...interface{}) {
 	if LEVELINFO >= l.level {
 		levelstring := l.String(LEVELINFO)
 		if levelstring != "" {
-			l.Wrapperf(levelstring, format, args...)
+			l.Wrapperf(levelstring, format, v...)
 		}
 	}
 }
 
 // Warn provides warn level log for displaying warning messages. This
 // information should be of particular concern.
-func (l *Logger) Warn(args ...interface{})  {
+func (l *Logger) Warn(v ...interface{}) {
 	if LEVELWARN >= l.level {
 		levelstring := l.String(LEVELWARN)
 		if levelstring != "" {
-			l.Wrapper(levelstring, args...)
+			l.Wrapper(levelstring, v...)
 		}
 	}
 }
@@ -93,22 +104,22 @@ func (l *Logger) Warn(args ...interface{})  {
 // Warnf provides warnf level log for displaying warning messages. This
 // information should be of particular concern.
 // Support log formatting.
-func (l *Logger) Warnf(format string, args ...interface{})  {
+func (l *Logger) Warnf(format string, v ...interface{}) {
 	if LEVELWARN >= l.level {
 		levelstring := l.String(LEVELWARN)
 		if levelstring != "" {
-			l.Wrapperf(levelstring, format, args...)
+			l.Wrapperf(levelstring, format, v...)
 		}
 	}
 }
 
 // Error provides error level log, such log information must be processed,
 // usually output by internal stack or custom error message.
-func (l *Logger) Error(args ...interface{})  {
+func (l *Logger) Error(v ...interface{}) {
 	if LEVELERROR >= l.level {
 		levelstring := l.String(LEVELERROR)
 		if levelstring != "" {
-			l.Wrapper(levelstring, args...)
+			l.Wrapper(levelstring, v...)
 		}
 	}
 }
@@ -116,22 +127,22 @@ func (l *Logger) Error(args ...interface{})  {
 // Errorf provides errorf level log, such log information must be processed,
 // usually output by internal stack or custom error message.
 // Support log formatting.
-func (l *Logger) Errorf(format string, args ...interface{})  {
+func (l *Logger) Errorf(format string, v ...interface{}) {
 	if LEVELERROR >= l.level {
 		levelstring := l.String(LEVELERROR)
 		if levelstring != "" {
-			l.Wrapperf(levelstring, format, args...)
+			l.Wrapperf(levelstring, format, v...)
 		}
 	}
 }
 
 // Fatal provides fatal level, the most severe (high) log level that must be
 // processed immediately.
-func (l *Logger) Fatal(args ...interface{})  {
+func (l *Logger) Fatal(v ...interface{}) {
 	if LEVELFATAL >= l.level {
 		levelstring := l.String(LEVELFATAL)
 		if levelstring != "" {
-			l.Wrapper(levelstring, args...)
+			l.Wrapper(levelstring, v...)
 		}
 	}
 }
@@ -139,13 +150,11 @@ func (l *Logger) Fatal(args ...interface{})  {
 // Fatalf provides fatalf level, the most severe (high) log level that must be
 // processed immediately.
 // Support log formatting.
-func (l *Logger) Fatalf(format string, args ...interface{})  {
+func (l *Logger) Fatalf(format string, v ...interface{}) {
 	if LEVELFATAL >= l.level {
 		levelstring := l.String(LEVELFATAL)
 		if levelstring != "" {
-			l.Wrapperf(levelstring, format, args...)
+			l.Wrapperf(levelstring, format, v...)
 		}
 	}
 }
-
-
