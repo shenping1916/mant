@@ -337,7 +337,7 @@ func (l *Logger) Wrapper(level string, v ...interface{}) {
 
 	// write msg
 	msg := fmt.Sprint(v...)
-	l.ColourAuxiliary(FgBlack, msg)
+	l.ColourAuxiliary(FgWhite, msg)
 	l.buf.WriteString(" ")
 
 	// log path(calldepth) && line number
@@ -385,7 +385,7 @@ func (l *Logger) Wrapperf(level string, format string, v ...interface{}) {
 
 	// write msg
 	msg := fmt.Sprintf(format, v...)
-	l.ColourAuxiliary(FgBlack, msg)
+	l.ColourAuxiliary(FgWhite, msg)
 	l.buf.WriteString(" ")
 
 	// log path(calldepth) && line number

@@ -71,11 +71,11 @@ func (c *Colour) ColourOutPut(buf *bytes.Buffer, fg string, msg string) {
 func (c *Colour) ColourForeGround(level string) string {
 	switch level {
 	case "debug", "DEBUG":
-		return FgBlack
+		return FgBule
 	case "info", "INFO":
 		return FgDarkGreen
 	case "warn", "WARN":
-		return FgYellow
+		return FgGreen
 	case "error", "ERROR":
 		return FgPurple
 	case "fatal", "FATAL":

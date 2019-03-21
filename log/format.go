@@ -27,7 +27,7 @@ func (l *Logger) itoa(i int, wid int) {
 	// i < 10
 	b[bp] = byte('0' + i)
 	msg := base.BytesToString(b[bp:])
-	l.ColourAuxiliary(FgBlack, msg)
+	l.ColourAuxiliary(FgYellow, msg)
 }
 
 // Format is used to format the log header, including: log prefix (if any), date (year/month/day),
@@ -63,9 +63,9 @@ func (l *Logger) format(level string, cTime time.Time) {
 	year, month, day := cTime.Date()
 
 	l.itoa(year, 4)
-	l.ColourAuxiliary(FgBlack, "/")
+	l.ColourAuxiliary(FgYellow, "/")
 	l.itoa(int(month), 2)
-	l.ColourAuxiliary(FgBlack, "/")
+	l.ColourAuxiliary(FgYellow, "/")
 	l.itoa(day, 2)
 	l.buf.WriteString(" ")
 	// ************************************
@@ -75,16 +75,16 @@ func (l *Logger) format(level string, cTime time.Time) {
 	hour, minute, second := cTime.Clock()
 
 	l.itoa(hour, 2)
-	l.ColourAuxiliary(FgBlack, ":")
+	l.ColourAuxiliary(FgYellow, ":")
 	l.itoa(minute, 2)
-	l.ColourAuxiliary(FgBlack, ":")
+	l.ColourAuxiliary(FgYellow, ":")
 	l.itoa(second, 2)
-	l.ColourAuxiliary(FgBlack, ":")
+	l.ColourAuxiliary(FgYellow, ":")
 	l.itoa(cTime.Nanosecond()/1e3, 6)
 	l.buf.WriteString(" ")
 	// ************************************
 
 	// hostname
-	l.ColourAuxiliary(FgBlack, hostname)
+	l.ColourAuxiliary(FgYellow, hostname)
 	l.buf.WriteString(" ")
 }
