@@ -329,33 +329,27 @@ func (l *Logger) Wrapper(level string, v ...interface{}) {
 	}
 
 	// log level
-	l.buf.WriteString("[")
-	l.buf.WriteString(level)
-	l.buf.WriteString("]")
+	bg_colour := l.colourful.ColourForeGround(level)
+	l.ColourAuxiliary(bg_colour, "[")
+	l.ColourAuxiliary(bg_colour, level)
+	l.ColourAuxiliary(bg_colour, "]")
 	l.buf.WriteString(" ")
 
 	// write msg
 	msg := fmt.Sprint(v...)
-	l.buf.WriteString(msg)
+	l.ColourAuxiliary(FgBlack, msg)
 	l.buf.WriteString(" ")
 
 	// log path(calldepth) && line number
-	l.buf.WriteString(f)
-	l.buf.WriteString(":")
-	l.buf.WriteString(strconv.Itoa(line))
+	l.ColourAuxiliary(FgPurple, f)
+	l.ColourAuxiliary(FgPurple, ":")
+	l.ColourAuxiliary(FgPurple, strconv.Itoa(line))
 
 	// write linkbreak
 	l.buf.WriteString(l.linkbreak)
 
 	//do not use the l.buf.Bytes() method, it will cause out of order
-	var out string
-	if l.colourful != nil {
-		out = l.colourful.ColourOutPut(l.buf, level, l.buf.String())
-	} else {
-		out = l.buf.String()
-	}
-
-	b := base.StringToBytes(out)
+	b := base.StringToBytes(l.buf.String())
 	if l.async {
 		l.asynch <- b
 	} else {
@@ -383,33 +377,27 @@ func (l *Logger) Wrapperf(level string, format string, v ...interface{}) {
 	}
 
 	// log level
-	l.buf.WriteString("[")
-	l.buf.WriteString(level)
-	l.buf.WriteString("]")
+	bg_colour := l.colourful.ColourForeGround(level)
+	l.ColourAuxiliary(bg_colour, "[")
+	l.ColourAuxiliary(bg_colour, level)
+	l.ColourAuxiliary(bg_colour, "]")
 	l.buf.WriteString(" ")
 
 	// write msg
 	msg := fmt.Sprintf(format, v...)
-	l.buf.WriteString(msg)
+	l.ColourAuxiliary(FgBlack, msg)
 	l.buf.WriteString(" ")
 
 	// log path(calldepth) && line number
-	l.buf.WriteString(f)
-	l.buf.WriteString(":")
-	l.buf.WriteString(strconv.Itoa(line))
+	l.ColourAuxiliary(FgPurple, f)
+	l.ColourAuxiliary(FgPurple, ":")
+	l.ColourAuxiliary(FgPurple, strconv.Itoa(line))
 
 	// write linkbreak
 	l.buf.WriteString(l.linkbreak)
 
 	//do not use the l.buf.Bytes() method, it will cause out of order
-	var out string
-	if l.colourful != nil {
-		out = l.colourful.ColourOutPut(l.buf, level, l.buf.String())
-	} else {
-		out = l.buf.String()
-	}
-
-	b := base.StringToBytes(out)
+	b := base.StringToBytes(l.buf.String())
 	if l.async {
 		l.asynch <- b
 	} else {

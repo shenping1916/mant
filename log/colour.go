@@ -2,43 +2,41 @@ package log
 
 import (
 	"bytes"
-	"strconv"
 )
 
 const capital = "\x1b"
 
-const (
-	fgBlack = iota + 30
-	fgRed
-	fgGreen
-	fgYellow
-	fgBule
-	fgMagenta
-	fgCyan
-	fgDarkGreen
-	fgWhite
+var (
+	FgBlack     = "30"
+	FgRed       = "31"
+	FgGreen     = "32"
+	FgYellow    = "33"
+	FgBule      = "34"
+	FgPurple    = "35"
+	FgDarkGreen = "36"
+	FgWhite     = "37"
 )
 
-const (
-	bgBlack = iota + 40
-	bgRed
-	bgGreen
-	bgYellow
-	bgBule
-	bgMagenta
-	bgCyan
-	bgWhite
+var (
+	BgBlack     = "40"
+	BgRed       = "41"
+	BgGreen     = "42"
+	BgYellow    = "43"
+	BgBule      = "44"
+	BgPurple    = "45"
+	BgDarkGreen = "46"
+	BgWhite     = "47"
 )
 
 type colourwrapper interface {
 	// color formatted output
-	ColourOutPut(*bytes.Buffer, string, string) string
+	ColourOutPut(*bytes.Buffer, string, string)
 
 	// setting the foreground color
-	ColourForeGround(string) int
+	ColourForeGround(string) string
 
 	// Set the background color
-	ColourBackGround() int
+	ColourBackGround() string
 }
 
 type Colour struct {
@@ -57,48 +55,49 @@ func NewColour() *Colour {
 // digits of the original log: level+space, and format the
 // log content from the third digit to the last digit, and
 // finally splicing all the contents and returning.
-func (c *Colour) ColourOutPut(buf *bytes.Buffer, level string, msg string) string {
-	levelFg := c.ColourForeGround(level)
-	levelBg := c.ColourBackGround()
-
-	buf.Reset()
-	buf.WriteString(msg[0:2])
+func (c *Colour) ColourOutPut(buf *bytes.Buffer, fg string, msg string) {
 	buf.WriteString(c.capital)
-	buf.WriteString("[")
-	buf.WriteString(strconv.Itoa(levelFg))
-	buf.WriteString(";")
-	buf.WriteString(strconv.Itoa(levelBg))
+	buf.WriteString("[0;")
+	buf.WriteString(fg)
 	buf.WriteString("m")
 
-	buf.WriteString(msg[2:])
+	buf.WriteString(msg)
 	buf.WriteString(c.capital)
 	buf.WriteString("[0m")
-
-	return buf.String()
 }
 
 // ColourForeGround sets the corresponding foreground color
 // according to the log level.
-func (c *Colour) ColourForeGround(level string) int {
+func (c *Colour) ColourForeGround(level string) string {
 	switch level {
 	case "debug", "DEBUG":
-		return fgWhite
+		return FgBlack
 	case "info", "INFO":
-		return fgDarkGreen
+		return FgDarkGreen
 	case "warn", "WARN":
-		return fgYellow
+		return FgYellow
 	case "error", "ERROR":
-		return fgBule
+		return FgPurple
 	case "fatal", "FATAL":
-		return fgRed
+		return FgRed
 	}
 
-	return 0
+	return ""
 }
 
 // ColourBackGround sets the log background color, unified
 // to black.
-func (c *Colour) ColourBackGround() int {
-	//return bgBlack
-	return 0
+func (c *Colour) ColourBackGround() string {
+	//return BgBlack
+	return ""
+}
+
+// ColourBackGround sets the log background color, unified
+// to black.
+func (l *Logger) ColourAuxiliary(fg string, msg string) {
+	if l.colourful != nil {
+		l.colourful.ColourOutPut(l.buf, fg, msg)
+	} else {
+		l.buf.WriteString(msg)
+	}
 }

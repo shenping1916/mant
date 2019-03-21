@@ -1,13 +1,14 @@
 package log
 
 import (
+	"mant/core/base"
 	"os"
 	"time"
 )
 
 var hostname string
 
-func init()  {
+func init() {
 	hostname, _ = os.Hostname()
 }
 
@@ -25,13 +26,16 @@ func (l *Logger) itoa(i int, wid int) {
 	}
 	// i < 10
 	b[bp] = byte('0' + i)
-	l.buf.Write(b[bp:])
+	msg := base.BytesToString(b[bp:])
+	l.ColourAuxiliary(FgBlack, msg)
 }
 
 // Format is used to format the log header, including: log prefix (if any), date (year/month/day),
 // time (hour: minute: second), host name.
 func (l *Logger) format(level string, cTime time.Time) {
-	l.buf.Reset()
+	if l.buf.Len() != 0 {
+		l.buf.Reset()
+	}
 
 	if level != "" {
 		// write level
@@ -54,27 +58,33 @@ func (l *Logger) format(level string, cTime time.Time) {
 		l.buf.WriteString(" ")
 	}
 
+	// ************************************
 	// year、month、day
 	year, month, day := cTime.Date()
+
 	l.itoa(year, 4)
-	l.buf.WriteString("/")
+	l.ColourAuxiliary(FgBlack, "/")
 	l.itoa(int(month), 2)
-	l.buf.WriteString("/")
+	l.ColourAuxiliary(FgBlack, "/")
 	l.itoa(day, 2)
 	l.buf.WriteString(" ")
+	// ************************************
 
+	// ************************************
 	// hour、minute、second、nanosecond
 	hour, minute, second := cTime.Clock()
+
 	l.itoa(hour, 2)
-	l.buf.WriteString(":")
+	l.ColourAuxiliary(FgBlack, ":")
 	l.itoa(minute, 2)
-	l.buf.WriteString(":")
+	l.ColourAuxiliary(FgBlack, ":")
 	l.itoa(second, 2)
-	l.buf.WriteString(".")
-	l.itoa(cTime.Nanosecond() / 1e3, 6)
+	l.ColourAuxiliary(FgBlack, ":")
+	l.itoa(cTime.Nanosecond()/1e3, 6)
 	l.buf.WriteString(" ")
+	// ************************************
 
 	// hostname
-	l.buf.WriteString(hostname)
+	l.ColourAuxiliary(FgBlack, hostname)
 	l.buf.WriteString(" ")
 }
