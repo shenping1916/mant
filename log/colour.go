@@ -15,6 +15,7 @@ const (
 	fgBule
 	fgMagenta
 	fgCyan
+	fgDarkGreen
 	fgWhite
 )
 
@@ -68,6 +69,7 @@ func (c *Colour) ColourOutPut(buf *bytes.Buffer, level string, msg string) strin
 	buf.WriteString(";")
 	buf.WriteString(strconv.Itoa(levelBg))
 	buf.WriteString("m")
+
 	buf.WriteString(msg[2:])
 	buf.WriteString(c.capital)
 	buf.WriteString("[0m")
@@ -80,13 +82,13 @@ func (c *Colour) ColourOutPut(buf *bytes.Buffer, level string, msg string) strin
 func (c *Colour) ColourForeGround(level string) int {
 	switch level {
 	case "debug", "DEBUG":
-		return fgMagenta
+		return fgWhite
 	case "info", "INFO":
-		return fgBule
+		return fgDarkGreen
 	case "warn", "WARN":
 		return fgYellow
 	case "error", "ERROR":
-		return fgGreen
+		return fgBule
 	case "fatal", "FATAL":
 		return fgRed
 	}
@@ -97,5 +99,6 @@ func (c *Colour) ColourForeGround(level string) int {
 // ColourBackGround sets the log background color, unified
 // to black.
 func (c *Colour) ColourBackGround() int {
-	return bgBlack
+	//return bgBlack
+	return 0
 }
