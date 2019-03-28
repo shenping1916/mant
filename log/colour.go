@@ -95,9 +95,5 @@ func (c *Colour) ColourBackGround() string {
 // ColourBackGround sets the log background color, unified
 // to black.
 func (l *Logger) ColourAuxiliary(fg string, msg string) {
-	if l.colourful != nil {
-		l.colourful.ColourOutPut(l.buf, fg, msg)
-	} else {
-		l.buf.WriteString(msg)
-	}
+	l.colourful.ColourOutPut(l.buf, fg, msg)
 }

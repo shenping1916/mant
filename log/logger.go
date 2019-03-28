@@ -316,8 +316,6 @@ func (l *Logger) Async() {
 // to the asynchronous queue, otherwise it will be passed
 // directly to the log writers.
 func (l *Logger) Wrapper(level string, v ...interface{}) {
-	l.format(level, time.Now())
-
 	// full path/short path + line number
 	abs, line := l.CallDepth()
 
@@ -328,22 +326,43 @@ func (l *Logger) Wrapper(level string, v ...interface{}) {
 		_, f = path.Split(abs)
 	}
 
-	// log level
-	bg_colour := l.colourful.ColourForeGround(level)
-	l.ColourAuxiliary(bg_colour, "[")
-	l.ColourAuxiliary(bg_colour, level)
-	l.ColourAuxiliary(bg_colour, "]")
-	l.buf.WriteString(" ")
-
-	// write msg
 	msg := fmt.Sprint(v...)
-	l.ColourAuxiliary(FgWhite, msg)
-	l.buf.WriteString(" ")
+	if l.colourful == nil {
+		l.format(level, time.Now())
 
-	// log path(calldepth) && line number
-	l.ColourAuxiliary(FgPurple, f)
-	l.ColourAuxiliary(FgPurple, ":")
-	l.ColourAuxiliary(FgPurple, strconv.Itoa(line))
+		// log level
+		l.buf.WriteString("[")
+		l.buf.WriteString(level)
+		l.buf.WriteString("]")
+		l.buf.WriteString(" ")
+
+		// write msg
+		l.buf.WriteString(msg)
+		l.buf.WriteString(" ")
+
+		// log path(calldepth) && line number
+		l.buf.WriteString(f)
+		l.buf.WriteString(":")
+		l.buf.WriteString(strconv.Itoa(line))
+	} else {
+		l.formatColour(level, time.Now())
+
+		// log level
+		bg_colour := l.colourful.ColourForeGround(level)
+		l.ColourAuxiliary(bg_colour, "[")
+		l.ColourAuxiliary(bg_colour, level)
+		l.ColourAuxiliary(bg_colour, "]")
+		l.buf.WriteString(" ")
+
+		// write msg
+		l.ColourAuxiliary(FgWhite, msg)
+		l.buf.WriteString(" ")
+
+		// log path(calldepth) && line number
+		l.ColourAuxiliary(FgPurple, f)
+		l.ColourAuxiliary(FgPurple, ":")
+		l.ColourAuxiliary(FgPurple, strconv.Itoa(line))
+	}
 
 	// write linkbreak
 	l.buf.WriteString(l.linkbreak)
@@ -364,8 +383,6 @@ func (l *Logger) Wrapper(level string, v ...interface{}) {
 // to the asynchronous queue, otherwise it will be passed
 // directly to the log writers.
 func (l *Logger) Wrapperf(level string, format string, v ...interface{}) {
-	l.format(level, time.Now())
-
 	// full path/short path + line number
 	abs, line := l.CallDepth()
 
@@ -376,22 +393,43 @@ func (l *Logger) Wrapperf(level string, format string, v ...interface{}) {
 		_, f = path.Split(abs)
 	}
 
-	// log level
-	bg_colour := l.colourful.ColourForeGround(level)
-	l.ColourAuxiliary(bg_colour, "[")
-	l.ColourAuxiliary(bg_colour, level)
-	l.ColourAuxiliary(bg_colour, "]")
-	l.buf.WriteString(" ")
-
-	// write msg
 	msg := fmt.Sprintf(format, v...)
-	l.ColourAuxiliary(FgWhite, msg)
-	l.buf.WriteString(" ")
+	if l.colourful == nil {
+		l.format(level, time.Now())
 
-	// log path(calldepth) && line number
-	l.ColourAuxiliary(FgPurple, f)
-	l.ColourAuxiliary(FgPurple, ":")
-	l.ColourAuxiliary(FgPurple, strconv.Itoa(line))
+		// log level
+		l.buf.WriteString("[")
+		l.buf.WriteString(level)
+		l.buf.WriteString("]")
+		l.buf.WriteString(" ")
+
+		// write msg
+		l.buf.WriteString(msg)
+		l.buf.WriteString(" ")
+
+		// log path(calldepth) && line number
+		l.buf.WriteString(f)
+		l.buf.WriteString(":")
+		l.buf.WriteString(strconv.Itoa(line))
+	} else {
+		l.formatColour(level, time.Now())
+
+		// log level
+		bg_colour := l.colourful.ColourForeGround(level)
+		l.ColourAuxiliary(bg_colour, "[")
+		l.ColourAuxiliary(bg_colour, level)
+		l.ColourAuxiliary(bg_colour, "]")
+		l.buf.WriteString(" ")
+
+		// write msg
+		l.ColourAuxiliary(FgWhite, msg)
+		l.buf.WriteString(" ")
+
+		// log path(calldepth) && line number
+		l.ColourAuxiliary(FgPurple, f)
+		l.ColourAuxiliary(FgPurple, ":")
+		l.ColourAuxiliary(FgPurple, strconv.Itoa(line))
+	}
 
 	// write linkbreak
 	l.buf.WriteString(l.linkbreak)

@@ -11,11 +11,26 @@ func main() {
 	f, err := os.OpenFile("/Users/shenping/Project/golang/src/mant/log/pprof/cpu.prof", os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		logs.Fatal(err)
+		return
+	} else {
+		if err := pprof.StartCPUProfile(f); err != nil {
+			logs.Fatal(err)
+			return
+		}
 	}
-
 	defer f.Close()
-	pprof.StartCPUProfile(f)
-	defer pprof.StopCPUProfile()
+
+	f1, err := os.OpenFile("/Users/shenping/Project/golang/src/mant/log/pprof/mem.prof", os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		logs.Fatal(err)
+		return
+	} else {
+		if err := pprof.WriteHeapProfile(f1); err != nil {
+			logs.Fatal(err)
+			return
+		}
+	}
+	defer f1.Close()
 
 	logger := log.NewLogger(3, log.LEVELDEBUG)
 	logger.SetFlag()
@@ -57,7 +72,7 @@ func main() {
 		"timeout": int64(5),
 	})
 
-	for i := 0; i <= 20000; i++ {
+	for i := 0; i <= 50000; i++ {
 		logger.Debug("debug")
 		logger.Debugf("debugf: %d", i)
 
@@ -73,9 +88,7 @@ func main() {
 		logger.Fatal("fatal")
 		logger.Fatalf("fatalf: %d", i)
 	}
-
 	logger.Close()
 
 	pprof.StopCPUProfile()
-	f.Close()
 }

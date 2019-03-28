@@ -10,12 +10,12 @@ func TestNewFileObject(t *testing.T) {
 	logger.SetColour()
 	logger.SetAsynChronous()
 	logger.SetOutput(FILE, map[string]interface{}{
-		"path": "/Users/shenping/Project/golang/src/mant/a.log",
-		"rotate": true,
-		"daily": true,
-		"compress": true,
-		"maxlines": int64(100),
-		"maxsize": int64(100),
+		"path":        "/Users/shenping/Project/golang/src/mant/a.log",
+		"rotate":      true,
+		"daily":       true,
+		"compress":    true,
+		"maxlines":    int64(100),
+		"maxsize":     int64(100),
 		"maxkeepdays": 30,
 	})
 
@@ -36,12 +36,12 @@ func BenchmarkNewFileObject(b *testing.B) {
 	logger.SetColour()
 	logger.SetAsynChronous()
 	logger.SetOutput(FILE, map[string]interface{}{
-		"path": "/Users/shenping/Project/golang/src/mant/a.log",
-		"rotate": true,
-		"daily": true,
-		"compress": true,
-		"maxlines": int64(100),
-		"maxsize": int64(100),
+		"path":        "/Users/shenping/Project/golang/src/mant/a.log",
+		"rotate":      true,
+		"daily":       true,
+		"compress":    true,
+		"maxlines":    int64(100),
+		"maxsize":     int64(100),
 		"maxkeepdays": 30,
 	})
 
