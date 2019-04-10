@@ -37,9 +37,9 @@ func (l *Logger) String(level uint) string {
 // detailed log information.
 func (l *Logger) Debug(v ...interface{}) {
 	if LEVELDEBUG >= l.level {
-		levelstring := l.String(LEVELDEBUG)
-		if levelstring != "" {
-			l.Wrapper(levelstring, v...)
+		levelString := l.String(LEVELDEBUG)
+		if levelString != "" {
+			l.Wrapper(levelString, true, v...)
 		}
 	}
 }
@@ -49,9 +49,9 @@ func (l *Logger) Debug(v ...interface{}) {
 // Support log formatting.
 func (l *Logger) Debugf(format string, v ...interface{}) {
 	if LEVELDEBUG >= l.level {
-		levelstring := l.String(LEVELDEBUG)
-		if levelstring != "" {
-			l.Wrapperf(levelstring, format, v...)
+		levelString := l.String(LEVELDEBUG)
+		if levelString != "" {
+			l.Wrapperf(levelString, format, true, v...)
 		}
 	}
 }
@@ -60,9 +60,9 @@ func (l *Logger) Debugf(format string, v ...interface{}) {
 // general user production environment.
 func (l *Logger) Info(v ...interface{}) {
 	if LEVELINFO >= l.level {
-		levelstring := l.String(LEVELINFO)
-		if levelstring != "" {
-			l.Wrapper(levelstring, v...)
+		levelString := l.String(LEVELINFO)
+		if levelString != "" {
+			l.Wrapper(levelString, true, v...)
 		}
 	}
 }
@@ -72,9 +72,9 @@ func (l *Logger) Info(v ...interface{}) {
 // Support log formatting.
 func (l *Logger) Infof(format string, v ...interface{}) {
 	if LEVELINFO >= l.level {
-		levelstring := l.String(LEVELINFO)
-		if levelstring != "" {
-			l.Wrapperf(levelstring, format, v...)
+		levelString := l.String(LEVELINFO)
+		if levelString != "" {
+			l.Wrapperf(levelString, format, true, v...)
 		}
 	}
 }
@@ -83,9 +83,9 @@ func (l *Logger) Infof(format string, v ...interface{}) {
 // information should be of particular concern.
 func (l *Logger) Warn(v ...interface{}) {
 	if LEVELWARN >= l.level {
-		levelstring := l.String(LEVELWARN)
-		if levelstring != "" {
-			l.Wrapper(levelstring, v...)
+		levelString := l.String(LEVELWARN)
+		if levelString != "" {
+			l.Wrapper(levelString, true, v...)
 		}
 	}
 }
@@ -95,9 +95,9 @@ func (l *Logger) Warn(v ...interface{}) {
 // Support log formatting.
 func (l *Logger) Warnf(format string, v ...interface{}) {
 	if LEVELWARN >= l.level {
-		levelstring := l.String(LEVELWARN)
-		if levelstring != "" {
-			l.Wrapperf(levelstring, format, v...)
+		levelString := l.String(LEVELWARN)
+		if levelString != "" {
+			l.Wrapperf(levelString, format, true, v...)
 		}
 	}
 }
@@ -106,9 +106,9 @@ func (l *Logger) Warnf(format string, v ...interface{}) {
 // usually output by internal stack or custom error message.
 func (l *Logger) Error(v ...interface{}) {
 	if LEVELERROR >= l.level {
-		levelstring := l.String(LEVELERROR)
-		if levelstring != "" {
-			l.Wrapper(levelstring, v...)
+		levelString := l.String(LEVELERROR)
+		if levelString != "" {
+			l.Wrapper(levelString, true, v...)
 		}
 	}
 }
@@ -118,9 +118,9 @@ func (l *Logger) Error(v ...interface{}) {
 // Support log formatting.
 func (l *Logger) Errorf(format string, v ...interface{}) {
 	if LEVELERROR >= l.level {
-		levelstring := l.String(LEVELERROR)
-		if levelstring != "" {
-			l.Wrapperf(levelstring, format, v...)
+		levelString := l.String(LEVELERROR)
+		if levelString != "" {
+			l.Wrapperf(levelString, format, true, v...)
 		}
 	}
 }
@@ -129,9 +129,9 @@ func (l *Logger) Errorf(format string, v ...interface{}) {
 // processed immediately.
 func (l *Logger) Fatal(v ...interface{}) {
 	if LEVELFATAL >= l.level {
-		levelstring := l.String(LEVELFATAL)
-		if levelstring != "" {
-			l.Wrapper(levelstring, v...)
+		levelString := l.String(LEVELFATAL)
+		if levelString != "" {
+			l.Wrapper(levelString, true, v...)
 		}
 	}
 }
@@ -141,9 +141,9 @@ func (l *Logger) Fatal(v ...interface{}) {
 // Support log formatting.
 func (l *Logger) Fatalf(format string, v ...interface{}) {
 	if LEVELFATAL >= l.level {
-		levelstring := l.String(LEVELFATAL)
-		if levelstring != "" {
-			l.Wrapperf(levelstring, format, v...)
+		levelString := l.String(LEVELFATAL)
+		if levelString != "" {
+			l.Wrapperf(levelString, format, true, v...)
 		}
 	}
 }

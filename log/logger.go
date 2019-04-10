@@ -315,7 +315,7 @@ func (l *Logger) Async() {
 // log has asynchronous mode enabled, it will be sent
 // to the asynchronous queue, otherwise it will be passed
 // directly to the log writers.
-func (l *Logger) Wrapper(level string, v ...interface{}) {
+func (l *Logger) Wrapper(level string, ok bool, v ...interface{}) {
 	// full path/short path + line number
 	abs, line := l.CallDepth()
 
@@ -341,9 +341,11 @@ func (l *Logger) Wrapper(level string, v ...interface{}) {
 		l.buf.WriteString(" ")
 
 		// log path(calldepth) && line number
-		l.buf.WriteString(f)
-		l.buf.WriteString(":")
-		l.buf.WriteString(strconv.Itoa(line))
+		if ok {
+			l.buf.WriteString(f)
+			l.buf.WriteString(":")
+			l.buf.WriteString(strconv.Itoa(line))
+		}
 	} else {
 		l.formatColour(level, time.Now())
 
@@ -359,9 +361,11 @@ func (l *Logger) Wrapper(level string, v ...interface{}) {
 		l.buf.WriteString(" ")
 
 		// log path(calldepth) && line number
-		l.ColourAuxiliary(FgPurple, f)
-		l.ColourAuxiliary(FgPurple, ":")
-		l.ColourAuxiliary(FgPurple, strconv.Itoa(line))
+		if ok {
+			l.ColourAuxiliary(FgPurple, f)
+			l.ColourAuxiliary(FgPurple, ":")
+			l.ColourAuxiliary(FgPurple, strconv.Itoa(line))
+		}
 	}
 
 	// write linkbreak
@@ -382,7 +386,7 @@ func (l *Logger) Wrapper(level string, v ...interface{}) {
 // log has asynchronous mode enabled, it will be sent
 // to the asynchronous queue, otherwise it will be passed
 // directly to the log writers.
-func (l *Logger) Wrapperf(level string, format string, v ...interface{}) {
+func (l *Logger) Wrapperf(level string, format string, ok bool, v ...interface{}) {
 	// full path/short path + line number
 	abs, line := l.CallDepth()
 
