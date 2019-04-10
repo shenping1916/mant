@@ -33,17 +33,6 @@ func (l *Logger) String(level uint) string {
 	return ""
 }
 
-//// Println implements the LogWriter interface in the gorm package for
-//// custom logging.
-//func (l *Logger) Println(v ...interface{}) {
-//	if LEVELDEBUG >= l.level {
-//		levelstring := l.String(LEVELDEBUG)
-//		if levelstring != "" {
-//			l.Wrapper(levelstring, v...)
-//		}
-//	}
-//}
-
 // Debug provides input for debug log level and can print the most
 // detailed log information.
 func (l *Logger) Debug(v ...interface{}) {
