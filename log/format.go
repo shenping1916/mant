@@ -14,7 +14,7 @@ func init() {
 // Cheap integer to fixed-width decimal ASCII. Give a negative width to avoid zero-padding.
 func (l *Logger) itoa(i int, wid int) {
 	// Assemble decimal in reverse order.
-	var b [20]byte
+	var b [30]byte
 	bp := len(b) - 1
 	for i >= 10 || wid > 1 {
 		wid--
@@ -32,7 +32,7 @@ func (l *Logger) itoa(i int, wid int) {
 // just for colour
 func (l *Logger) itoaColour(i int, wid int) {
 	// Assemble decimal in reverse order.
-	var b [24]byte
+	var b [50]byte
 	bp := len(b) - 1
 	tail := []byte{'m', '0', '['}
 	for _, s := range tail {

@@ -350,10 +350,10 @@ func (l *Logger) Wrapper(level string, ok bool, v ...interface{}) {
 		l.formatColour(level, time.Now())
 
 		// log level
-		bg_colour := l.colourful.ColourForeGround(level)
-		l.ColourAuxiliary(bg_colour, "[")
-		l.ColourAuxiliary(bg_colour, level)
-		l.ColourAuxiliary(bg_colour, "]")
+		bgColour := l.colourful.ColourForeGround(level)
+		l.ColourAuxiliary(bgColour, "[")
+		l.ColourAuxiliary(bgColour, level)
+		l.ColourAuxiliary(bgColour, "]")
 		l.buf.WriteString(" ")
 
 		// write msg
@@ -419,10 +419,10 @@ func (l *Logger) Wrapperf(level string, format string, ok bool, v ...interface{}
 		l.formatColour(level, time.Now())
 
 		// log level
-		bg_colour := l.colourful.ColourForeGround(level)
-		l.ColourAuxiliary(bg_colour, "[")
-		l.ColourAuxiliary(bg_colour, level)
-		l.ColourAuxiliary(bg_colour, "]")
+		bgColour := l.colourful.ColourForeGround(level)
+		l.ColourAuxiliary(bgColour, "[")
+		l.ColourAuxiliary(bgColour, level)
+		l.ColourAuxiliary(bgColour, "]")
 		l.buf.WriteString(" ")
 
 		// write msg
