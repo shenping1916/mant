@@ -1,7 +1,6 @@
 package log
 
 import (
-	"bytes"
 	"fmt"
 	"mant/core/base"
 	"os"
@@ -37,7 +36,7 @@ type Logger struct {
 	linkbreak string
 	calldepth int
 	colourful colourwrapper
-	buf       *bytes.Buffer
+	buf       *Buffer
 	writer    []Writer
 	flag      bool
 	longed    bool
@@ -52,10 +51,11 @@ func NewLogger(depth int, level ...Level) *Logger {
 	logger.linkbreak = logger.SetLinkBeak()
 	logger.calldepth = depth
 
-	// Initialize byte buffer
-	logger.buf = new(bytes.Buffer)
-	// Preset buffer size to prevent memory redistribution caused by capacity expansion.
-	logger.buf.Grow(1024)
+	//// Initialize byte buffer
+	//logger.buf = new(bytes.Buffer)
+	//// Preset buffer size to prevent memory redistribution caused by capacity expansion.
+	//logger.buf.Grow(1024)
+	logger.buf = NewBuffer()
 
 	// Initialize writer
 	logger.writer = make([]Writer, 0, 10)
