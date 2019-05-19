@@ -52,14 +52,14 @@ func NewColour() *Colour {
 // log content from the third digit to the last digit, and
 // finally splicing all the contents and returning.
 func (c *Colour) ColourOutPut(buf *Buffer, fg string, msg string) {
-	buf.buffer.WriteString(c.capital)
-	buf.buffer.WriteString("[0;")
-	buf.buffer.WriteString(fg)
-	buf.buffer.WriteString("m")
+	buf.WriteString(c.capital)
+	buf.WriteString("[0;")
+	buf.WriteString(fg)
+	buf.WriteString("m")
 
-	buf.buffer.WriteString(msg)
-	buf.buffer.WriteString(c.capital)
-	buf.buffer.WriteString("[0m")
+	buf.WriteString(msg)
+	buf.WriteString(c.capital)
+	buf.WriteString("[0m")
 }
 
 // ColourForeGround sets the corresponding foreground color

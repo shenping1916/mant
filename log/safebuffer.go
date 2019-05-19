@@ -85,8 +85,7 @@ func (b *Buffer) Next(n int) []byte {
 	return b.buffer.Next(n)
 }
 
-// ReadBytes reads until the first occurrence of delim in the input,
-// returning a slice containing the data up to and including the delimiter.
+// ReadByte reads and returns the next byte from the buffer.
 func (b *Buffer) ReadByte() (c byte, err error) {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
