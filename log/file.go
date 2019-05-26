@@ -18,6 +18,8 @@ var (
 
 type FileObject struct {
 	sync.RWMutex
+
+	// file attributes
 	file *os.File
 	path string
 	flag int
@@ -60,6 +62,8 @@ func NewFileObject(path string, rotate, compress, daily bool, opts ...RotateOpti
 	obj.compress = Compress{}
 	obj.compress.taskQueue = make(chan Task, 20)
 	obj.compress.ctx, obj.compress.cancel = context.WithCancel(context.Background())
+
+	// listening task queue
 	go obj.compress.TaskListen()
 
 	// history log file deletion
@@ -146,9 +150,7 @@ func (f *FileObject) Writing(p []byte) error {
 		if f.RotateByLines() {
 			f.Lock()
 			f.rotate.CurrentLine = 0
-			if err := f.DoRotate(); err != nil {
-				fmt.Fprintln(os.Stderr, "Unable to execute rotate: ", err)
-			}
+			f.DoRotate()
 			f.Unlock()
 		}
 
@@ -156,9 +158,7 @@ func (f *FileObject) Writing(p []byte) error {
 		if f.RotateBySizes() {
 			f.Lock()
 			f.rotate.CurrentSize = 0
-			if err := f.DoRotate(); err != nil {
-				fmt.Fprintln(os.Stderr, "Unable to execute rotate: ", err)
-			}
+			f.DoRotate()
 			f.Unlock()
 		}
 	}
@@ -168,9 +168,7 @@ func (f *FileObject) Writing(p []byte) error {
 		if f.RotateByDaily() {
 			f.Lock()
 			f.rotate.CurrentTime = time.Now()
-			if err := f.DoRotate(); err != nil {
-				fmt.Fprintln(os.Stderr, "Unable to execute rotate: ", err)
-			}
+			f.DoRotate()
 			f.Unlock()
 		}
 	}

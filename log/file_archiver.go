@@ -33,11 +33,16 @@ func (c Compress) DoCompress(zipName string, path string, sources []string) Task
 func (c Compress) TaskListen() {
 	for {
 		select {
-		case fn := <-c.taskQueue:
+		case fn, ok := <-c.taskQueue:
+			if !ok {
+				return
+			}
+
 			if err := fn(); err != nil {
 				fmt.Fprintln(os.Stderr, "log compression error: ", err)
 			}
 		case <-c.ctx.Done():
+			close(c.taskQueue)
 			return
 		}
 	}

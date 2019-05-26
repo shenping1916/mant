@@ -1,6 +1,7 @@
 package log
 
 import (
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -71,7 +72,7 @@ func WithMaxDaysOption(d int) RotateOption {
 // 3. Open and generate a new log file handle, The handle pointer is assigned to f;
 // 4. If log compression is configured, the asynchronous compression function will
 // be called, written to chan, and executed asynchronously.
-func (f *FileObject) DoRotate() error {
+func (f *FileObject) DoRotate() {
 	var err error
 
 	// counter increment
@@ -88,27 +89,22 @@ func (f *FileObject) DoRotate() error {
 	// For example: a.log will be renamed to a.log.1
 	fName := f.path + "." + format + "_" + strconv.Itoa(f.rotate.Count)
 	if err = os.Rename(f.path, fName); err != nil {
-		return err
+		fmt.Fprintln(os.Stderr, "File rename failed: ", err)
+		return
 	}
 
 	// generate a new file handle
 	f.file, err = f.Open()
 	if err != nil {
-		return err
+		fmt.Fprintln(os.Stderr, "New file handle failed to open: ", err)
+		return
 	}
 
 	if f.isCompress {
 		splice := "." + format + "_" + strconv.Itoa(f.rotate.Count) + ".zip"
 		zipName := strings.Replace(f.path, filepath.Ext(f.path), splice, 1)
-
-		select {
-		case <-f.compress.ctx.Done():
-			return nil
-		case f.compress.taskQueue <- f.compress.DoCompress(zipName, path.Dir(f.path), []string{filepath.Base(fName)}):
-		}
+		f.compress.taskQueue <- f.compress.DoCompress(zipName, path.Dir(f.path), []string{filepath.Base(fName)})
 	}
-
-	return nil
 }
 
 func (f *FileObject) RotateByLines() bool {

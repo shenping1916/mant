@@ -21,7 +21,7 @@ func TestNewFileObject(t *testing.T) {
 
 	for i := 0; i < 1000; i++ {
 		logger.Info(i)
-		logger.Infof("i: %d", i)
+		logger.Infof("infof: %d", i)
 	}
 
 	logger.Close()

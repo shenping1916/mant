@@ -2,7 +2,6 @@ package log
 
 import (
 	"fmt"
-	"mant/core/base"
 	"os"
 	"path"
 	"runtime"
@@ -274,9 +273,9 @@ func (l *Logger) LevelString() []string {
 			return upper[4:]
 		}
 		return lower[4:]
+	default:
+		return []string{}
 	}
-
-	return []string{}
 }
 
 // Async provides asynchronous write of logs, implemented by chan.
@@ -290,6 +289,8 @@ func (l *Logger) Async() {
 			if !ok {
 				break
 			}
+
+			// write byte array
 			l.WriteTo(msg)
 		}
 		if !ok {
@@ -341,11 +342,9 @@ func (l *Logger) Wrapper(level string, ok bool, v ...interface{}) {
 		l.buf.WriteString(" ")
 
 		// log path(calldepth) && line number
-		if ok {
-			l.buf.WriteString(f)
-			l.buf.WriteString(":")
-			l.buf.WriteString(strconv.Itoa(line))
-		}
+		l.buf.WriteString(f)
+		l.buf.WriteString(":")
+		l.buf.WriteString(strconv.Itoa(line))
 	} else {
 		l.formatColour(level, time.Now())
 
@@ -361,22 +360,21 @@ func (l *Logger) Wrapper(level string, ok bool, v ...interface{}) {
 		l.buf.WriteString(" ")
 
 		// log path(calldepth) && line number
-		if ok {
-			l.ColourAuxiliary(FgPurple, f)
-			l.ColourAuxiliary(FgPurple, ":")
-			l.ColourAuxiliary(FgPurple, strconv.Itoa(line))
-		}
+		l.ColourAuxiliary(FgPurple, f)
+		l.ColourAuxiliary(FgPurple, ":")
+		l.ColourAuxiliary(FgPurple, strconv.Itoa(line))
 	}
 
 	// write linkbreak
 	l.buf.WriteString(l.linkbreak)
 
 	//do not use the l.buf.Bytes() method, it will cause out of order
-	b := base.StringToBytes(l.buf.String())
+	//_b := base.StringToBytes(l.buf.String())
+	_b := l.buf.Bytes()
 	if l.async {
-		l.asynch <- b
+		l.asynch <- _b
 	} else {
-		l.WriteTo(b)
+		l.WriteTo(_b)
 	}
 }
 
@@ -439,11 +437,12 @@ func (l *Logger) Wrapperf(level string, format string, ok bool, v ...interface{}
 	l.buf.WriteString(l.linkbreak)
 
 	//do not use the l.buf.Bytes() method, it will cause out of order
-	b := base.StringToBytes(l.buf.String())
+	//_b := base.StringToBytes(l.buf.String())
+	_b := l.buf.Bytes()
 	if l.async {
-		l.asynch <- b
+		l.asynch <- _b
 	} else {
-		l.WriteTo(b)
+		l.WriteTo(_b)
 	}
 }
 
