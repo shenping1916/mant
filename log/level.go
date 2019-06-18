@@ -39,7 +39,7 @@ func (l *Logger) Debug(v ...interface{}) {
 	if LEVELDEBUG >= l.level {
 		levelString := l.String(LEVELDEBUG)
 		if levelString != "" {
-			l.Wrapper(levelString, true, v...)
+			l.Wrapper(levelString, v...)
 		}
 	}
 }
@@ -51,7 +51,7 @@ func (l *Logger) Debugf(format string, v ...interface{}) {
 	if LEVELDEBUG >= l.level {
 		levelString := l.String(LEVELDEBUG)
 		if levelString != "" {
-			l.Wrapperf(levelString, format, true, v...)
+			l.Wrapperf(levelString, format, v...)
 		}
 	}
 }
@@ -62,7 +62,7 @@ func (l *Logger) Info(v ...interface{}) {
 	if LEVELINFO >= l.level {
 		levelString := l.String(LEVELINFO)
 		if levelString != "" {
-			l.Wrapper(levelString, true, v...)
+			l.Wrapper(levelString, v...)
 		}
 	}
 }
@@ -74,7 +74,7 @@ func (l *Logger) Infof(format string, v ...interface{}) {
 	if LEVELINFO >= l.level {
 		levelString := l.String(LEVELINFO)
 		if levelString != "" {
-			l.Wrapperf(levelString, format, true, v...)
+			l.Wrapperf(levelString, format, v...)
 		}
 	}
 }
@@ -85,7 +85,7 @@ func (l *Logger) Warn(v ...interface{}) {
 	if LEVELWARN >= l.level {
 		levelString := l.String(LEVELWARN)
 		if levelString != "" {
-			l.Wrapper(levelString, true, v...)
+			l.Wrapper(levelString, v...)
 		}
 	}
 }
@@ -97,7 +97,7 @@ func (l *Logger) Warnf(format string, v ...interface{}) {
 	if LEVELWARN >= l.level {
 		levelString := l.String(LEVELWARN)
 		if levelString != "" {
-			l.Wrapperf(levelString, format, true, v...)
+			l.Wrapperf(levelString, format, v...)
 		}
 	}
 }
@@ -108,7 +108,7 @@ func (l *Logger) Error(v ...interface{}) {
 	if LEVELERROR >= l.level {
 		levelString := l.String(LEVELERROR)
 		if levelString != "" {
-			l.Wrapper(levelString, true, v...)
+			l.Wrapper(levelString, v...)
 		}
 	}
 }
@@ -120,7 +120,7 @@ func (l *Logger) Errorf(format string, v ...interface{}) {
 	if LEVELERROR >= l.level {
 		levelString := l.String(LEVELERROR)
 		if levelString != "" {
-			l.Wrapperf(levelString, format, true, v...)
+			l.Wrapperf(levelString, format, v...)
 		}
 	}
 }
@@ -131,7 +131,7 @@ func (l *Logger) Fatal(v ...interface{}) {
 	if LEVELFATAL >= l.level {
 		levelString := l.String(LEVELFATAL)
 		if levelString != "" {
-			l.Wrapper(levelString, true, v...)
+			l.Wrapper(levelString, v...)
 		}
 	}
 }
@@ -143,7 +143,7 @@ func (l *Logger) Fatalf(format string, v ...interface{}) {
 	if LEVELFATAL >= l.level {
 		levelString := l.String(LEVELFATAL)
 		if levelString != "" {
-			l.Wrapperf(levelString, format, true, v...)
+			l.Wrapperf(levelString, format, v...)
 		}
 	}
 }

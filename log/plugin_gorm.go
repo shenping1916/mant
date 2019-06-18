@@ -14,7 +14,7 @@ import (
 // log package is compatible with the gorm sql output.
 func (l *Logger) Print(v ...interface{}) {
 	levelString := l.String(LEVELDEBUG)
-	l.Wrapper(levelString, false, logFormatter(v...)...)
+	l.Wrapper(levelString, logFormatter(v...)...)
 }
 
 var (

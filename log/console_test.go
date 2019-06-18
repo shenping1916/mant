@@ -9,7 +9,7 @@ func TestNewConsoleObject(t *testing.T) {
 	logger.SetFlag()
 	logger.SetColour()
 	logger.SetAsynChronous()
-	logger.SetOutput(CONSOLE)
+	logger.SetOutput(CONSOLE, nil)
 
 	for i := 0; i < 1000; i++ {
 		logger.Info(i)

@@ -1,7 +1,9 @@
 package log
 
 import (
+	"bytes"
 	"fmt"
+	"mant/core/base"
 	"os"
 	"path"
 	"runtime"
@@ -35,7 +37,7 @@ type Logger struct {
 	linkbreak string
 	calldepth int
 	colourful colourwrapper
-	buf       *Buffer
+	buf       *bytes.Buffer
 	writer    []Writer
 	flag      bool
 	longed    bool
@@ -50,11 +52,10 @@ func NewLogger(depth int, level ...Level) *Logger {
 	logger.linkbreak = logger.SetLinkBeak()
 	logger.calldepth = depth
 
-	//// Initialize byte buffer
-	//logger.buf = new(bytes.Buffer)
-	//// Preset buffer size to prevent memory redistribution caused by capacity expansion.
-	//logger.buf.Grow(1024)
-	logger.buf = NewBuffer()
+	// Initialize byte buffer
+	logger.buf = new(bytes.Buffer)
+	// Preset buffer size to prevent memory redistribution caused by capacity expansion.
+	logger.buf.Grow(1024)
 
 	// Initialize writer
 	logger.writer = make([]Writer, 0, 10)
@@ -159,24 +160,24 @@ func (l *Logger) SetAsynChronous(msgLen ...int) {
 	l.asynstop = make(chan struct{}, 1)
 
 	// turn on asynchronous mode
-	go l.Async()
+	go l.Async(l.asynch)
 }
 
 // SetOutput is used to set the log output to any destination
 // that implements the io.writer method.
-func (l *Logger) SetOutput(adapter string, arg ...map[string]interface{}) {
+func (l *Logger) SetOutput(adapter string, cfg map[string]interface{}) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
 	switch adapter {
 	case CONN:
-		if len(arg) > 0 {
+		if cfg != nil {
 			var tmp struct {
 				nettype string
 				addrs   []string
 			}
 
-			for key, value := range arg[0] {
+			for key, value := range cfg {
 				switch key {
 				case "nettype":
 					tmp.nettype = value.(string)
@@ -185,14 +186,13 @@ func (l *Logger) SetOutput(adapter string, arg ...map[string]interface{}) {
 				}
 			}
 
-			conn := NewConnObject(tmp.nettype, tmp.addrs)
-			l.writer = append(l.writer, conn)
+			l.writer = append(l.writer, NewConnObject(tmp.nettype, tmp.addrs))
 		}
+
 	case CONSOLE:
-		c := NewConsoleObject()
-		l.writer = append(l.writer, c)
+		l.writer = append(l.writer, NewConsoleObject())
 	case FILE, MULTIFILE:
-		if len(arg) > 0 {
+		if cfg != nil {
 			var tmp struct {
 				path          string
 				isRotate      bool
@@ -203,7 +203,7 @@ func (l *Logger) SetOutput(adapter string, arg ...map[string]interface{}) {
 				maxKeepDays   int
 			}
 
-			for key, value := range arg[0] {
+			for key, value := range cfg {
 				switch key {
 				case "path":
 					tmp.path = value.(string)
@@ -224,11 +224,22 @@ func (l *Logger) SetOutput(adapter string, arg ...map[string]interface{}) {
 
 			switch adapter {
 			case FILE:
-				f := NewFileObject(tmp.path, tmp.isRotate, tmp.isCompress, tmp.isRotateDaily, WithMaxLinesOption(tmp.maxLines), WithMaxSizeOption(tmp.maxSize), WithMaxDaysOption(tmp.maxKeepDays))
-				l.writer = append(l.writer, f)
+				l.writer = append(l.writer, NewFileObject(tmp.path,
+					tmp.isRotate,
+					tmp.isCompress,
+					tmp.isRotateDaily,
+					WithMaxLinesOption(tmp.maxLines),
+					WithMaxSizeOption(tmp.maxSize),
+					WithMaxDaysOption(tmp.maxKeepDays)))
 			case MULTIFILE:
-				multi := NewMultiFileObject(tmp.path, l.LevelString(), tmp.isRotate, tmp.isCompress, tmp.isRotateDaily, tmp.maxLines, tmp.maxSize, tmp.maxKeepDays)
-				l.writer = append(l.writer, multi)
+				l.writer = append(l.writer, NewMultiFileObject(tmp.path,
+					l.LevelString(),
+					tmp.isRotate,
+					tmp.isCompress,
+					tmp.isRotateDaily,
+					tmp.maxLines,
+					tmp.maxSize,
+					tmp.maxKeepDays))
 			}
 		}
 		//case SYSLOG:
@@ -279,13 +290,13 @@ func (l *Logger) LevelString() []string {
 }
 
 // Async provides asynchronous write of logs, implemented by chan.
-func (l *Logger) Async() {
+func (l *Logger) Async(ch <-chan []byte) {
 	var msg []byte
 	ok := true
 
 	for {
 		select {
-		case msg, ok = <-l.asynch:
+		case msg, ok = <-ch:
 			if !ok {
 				break
 			}
@@ -316,7 +327,7 @@ func (l *Logger) Async() {
 // log has asynchronous mode enabled, it will be sent
 // to the asynchronous queue, otherwise it will be passed
 // directly to the log writers.
-func (l *Logger) Wrapper(level string, ok bool, v ...interface{}) {
+func (l *Logger) Wrapper(level string, v ...interface{}) {
 	// full path/short path + line number
 	abs, line := l.CallDepth()
 
@@ -369,8 +380,7 @@ func (l *Logger) Wrapper(level string, ok bool, v ...interface{}) {
 	l.buf.WriteString(l.linkbreak)
 
 	//do not use the l.buf.Bytes() method, it will cause out of order
-	//_b := base.StringToBytes(l.buf.String())
-	_b := l.buf.Bytes()
+	_b := base.StringToBytes(l.buf.String())
 	if l.async {
 		l.asynch <- _b
 	} else {
@@ -384,7 +394,7 @@ func (l *Logger) Wrapper(level string, ok bool, v ...interface{}) {
 // log has asynchronous mode enabled, it will be sent
 // to the asynchronous queue, otherwise it will be passed
 // directly to the log writers.
-func (l *Logger) Wrapperf(level string, format string, ok bool, v ...interface{}) {
+func (l *Logger) Wrapperf(level string, format string, v ...interface{}) {
 	// full path/short path + line number
 	abs, line := l.CallDepth()
 
@@ -437,8 +447,7 @@ func (l *Logger) Wrapperf(level string, format string, ok bool, v ...interface{}
 	l.buf.WriteString(l.linkbreak)
 
 	//do not use the l.buf.Bytes() method, it will cause out of order
-	//_b := base.StringToBytes(l.buf.String())
-	_b := l.buf.Bytes()
+	_b := base.StringToBytes(l.buf.String())
 	if l.async {
 		l.asynch <- _b
 	} else {

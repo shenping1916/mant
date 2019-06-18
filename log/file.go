@@ -150,16 +150,16 @@ func (f *FileObject) Writing(p []byte) error {
 		if f.RotateByLines() {
 			f.Lock()
 			f.rotate.CurrentLine = 0
-			f.DoRotate()
 			f.Unlock()
+			f.DoRotate()
 		}
 
 		// rotate by log file size
 		if f.RotateBySizes() {
 			f.Lock()
 			f.rotate.CurrentSize = 0
-			f.DoRotate()
 			f.Unlock()
+			f.DoRotate()
 		}
 	}
 
@@ -168,8 +168,8 @@ func (f *FileObject) Writing(p []byte) error {
 		if f.RotateByDaily() {
 			f.Lock()
 			f.rotate.CurrentTime = time.Now()
-			f.DoRotate()
 			f.Unlock()
+			f.DoRotate()
 		}
 	}
 

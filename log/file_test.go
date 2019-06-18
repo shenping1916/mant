@@ -45,7 +45,7 @@ func BenchmarkNewFileObject(b *testing.B) {
 		"maxkeepdays": 30,
 	})
 
-	for i := 0; i <= b.N; i++ {
+	for i := 0; i < b.N; i++ {
 		b.StartTimer()
 		logger.Debug("debug")
 		logger.Debugf("debugf: %d", 1)

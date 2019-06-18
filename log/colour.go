@@ -1,5 +1,7 @@
 package log
 
+import "bytes"
+
 const capital = "\x1b"
 
 var (
@@ -26,7 +28,7 @@ var (
 
 type colourwrapper interface {
 	// color formatted output
-	ColourOutPut(*Buffer, string, string)
+	ColourOutPut(*bytes.Buffer, string, string)
 
 	// setting the foreground color
 	ColourForeGround(string) string
@@ -51,7 +53,7 @@ func NewColour() *Colour {
 // digits of the original log: level+space, and format the
 // log content from the third digit to the last digit, and
 // finally splicing all the contents and returning.
-func (c *Colour) ColourOutPut(buf *Buffer, fg string, msg string) {
+func (c *Colour) ColourOutPut(buf *bytes.Buffer, fg string, msg string) {
 	buf.WriteString(c.capital)
 	buf.WriteString("[0;")
 	buf.WriteString(fg)
