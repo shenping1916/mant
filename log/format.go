@@ -67,8 +67,6 @@ func (l *Logger) itoaColour(i int, wid int) {
 // Format is used to format the log header, including: log prefix (if any), date (year/month/day),
 // time (hour: minute: second), host name.
 func (l *Logger) format(level string, cTime time.Time) {
-	l.buf.Reset()
-
 	if level != "" {
 		// write level
 		switch level {
@@ -119,8 +117,6 @@ func (l *Logger) format(level string, cTime time.Time) {
 // time (hour: minute: second), host name.
 // just for colour
 func (l *Logger) formatColour(level string, cTime time.Time) {
-	l.buf.Reset()
-
 	if level != "" {
 		// write level
 		switch level {

@@ -1,6 +1,6 @@
 package log
 
-type Writer interface {
+type Adapter interface {
 	//  Writing method writes the log bytes to the
 	// destination, for example: file, terminal, network,
 	// system log component.

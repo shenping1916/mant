@@ -87,18 +87,18 @@ func (p *Protocol) String() string {
 
 type ConnObject struct {
 	sync.RWMutex
-	nety  string
-	addrs []string
-	conns []net.Conn
-	pool  *sync.Pool
+	netType string
+	addrs   []string
+	conns   []net.Conn
+	pool    *sync.Pool
 }
 
 // NewConnObject is an initialization constructor
 // that returns a ConnObject pointer object.
-func NewConnObject(netType string, addRs []string) *ConnObject {
+func NewConnObject(netType string, addrs []string) *ConnObject {
 	obj := new(ConnObject)
-	obj.addrs = addRs
-	obj.conns = make([]net.Conn, 0, len(addRs))
+	obj.addrs = addrs
+	obj.conns = make([]net.Conn, 0, len(addrs))
 	obj.pool = &sync.Pool{
 		New: func() interface{} {
 			return &Protocol{}
@@ -122,11 +122,11 @@ func (c *ConnObject) SetNetworkType(netType string) {
 		for _, reg := range regexps {
 			match := reg.FindStringSubmatch(strings.ToLower(netType))
 			if len(match) > 0 {
-				c.nety = match[0]
+				c.netType = match[0]
 			}
 		}
 
-		if c.nety == "" {
+		if c.netType == "" {
 			panic(ErrNetType)
 		}
 	} else {
@@ -142,9 +142,9 @@ func (c *ConnObject) DialFactory() {
 	for _, addr := range c.addrs {
 		a := addr
 		for i := 3; i > 0; i-- {
-			if strings.HasPrefix(c.nety, "udp") {
-				udpAddr, _ := net.ResolveUDPAddr(c.nety, a)
-				conn, err := net.DialUDP(c.nety, nil, udpAddr)
+			if strings.HasPrefix(c.netType, "udp") {
+				udpAddr, _ := net.ResolveUDPAddr(c.netType, a)
+				conn, err := net.DialUDP(c.netType, nil, udpAddr)
 				switch err {
 				case nil:
 					c.conns = append(c.conns, conn)
@@ -154,9 +154,9 @@ func (c *ConnObject) DialFactory() {
 					fmt.Fprintln(os.Stderr, out)
 					continue
 				}
-			} else if strings.HasPrefix(c.nety, "tcp") {
-				tcpAddr, _ := net.ResolveTCPAddr(c.nety, a)
-				conn, err := net.DialTCP(c.nety, nil, tcpAddr)
+			} else if strings.HasPrefix(c.netType, "tcp") {
+				tcpAddr, _ := net.ResolveTCPAddr(c.netType, a)
+				conn, err := net.DialTCP(c.netType, nil, tcpAddr)
 
 				switch err {
 				case nil:
@@ -183,12 +183,12 @@ func (c *ConnObject) Writing(p []byte) error {
 	for i, j := 0, len(c.conns); i < j; i++ {
 		co := c.conns[i]
 		if co != nil {
-			if strings.HasPrefix(c.nety, "udp") {
+			if strings.HasPrefix(c.netType, "udp") {
 				_, err := co.Write(pIndex)
 				if err != nil {
 					fmt.Fprintln(os.Stderr, "Network write error: ", err)
 				}
-			} else if strings.HasPrefix(c.nety, "tcp") {
+			} else if strings.HasPrefix(c.netType, "tcp") {
 				g := c.pool.Get().(*Protocol)
 				g.Version = PackVersion
 				g.DataLength = int16(len(pIndex))

@@ -13,8 +13,8 @@ func TestNewConnObject(t *testing.T) {
 	logger.SetColour()
 	logger.SetAsynChronous()
 	logger.SetOutput(CONN, map[string]interface{}{
-		"nettype": "udp",
-		"addrs": []string{"127.0.0.1:2121"},
+		"netType": "udp",
+		"addrs":   []string{"127.0.0.1:2121"},
 		"timeout": int64(5),
 	})
 
@@ -49,8 +49,8 @@ func TestNewConnObject2(t *testing.T) {
 	logger.SetColour()
 	logger.SetAsynChronous()
 	logger.SetOutput(CONN, map[string]interface{}{
-		"nettype": "tcp",
-		"addrs": []string{"127.0.0.1:2121"},
+		"netType": "tcp",
+		"addrs":   []string{"127.0.0.1:2121"},
 	})
 
 	for i := 0; i < 1000; i++ {
@@ -84,8 +84,8 @@ func BenchmarkNewConnObject(b *testing.B) {
 	logger.SetColour()
 	logger.SetAsynChronous()
 	logger.SetOutput(CONN, map[string]interface{}{
-		"nettype": "udp",
-		"addrs": []string{"127.0.0.1:2121"},
+		"netType": "udp",
+		"addrs":   []string{"127.0.0.1:2121"},
 		"timeout": int64(5),
 	})
 
@@ -122,8 +122,8 @@ func BenchmarkNewConnObject2(b *testing.B) {
 	logger.SetColour()
 	logger.SetAsynChronous()
 	logger.SetOutput(CONN, map[string]interface{}{
-		"nettype": "tcp",
-		"addrs": []string{"127.0.0.1:2121"},
+		"netType": "tcp",
+		"addrs":   []string{"127.0.0.1:2121"},
 	})
 
 	for i := 0; i <= b.N; i++ {

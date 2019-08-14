@@ -3,15 +3,16 @@ package config
 import (
 	"errors"
 	"mant/config/yaml"
-	"strings"
 )
 
-const (
-	ParseJSON    = "json"
-	ParseYAML    = "yaml"
-	ParseTOML    = "toml"
-	ParseXML     = "xml"
-	ParseUnknown = "unknown"
+type ParseType string
+
+var (
+	JSON    ParseType = "json"
+	YAML    ParseType = "yaml"
+	TOML    ParseType = "toml"
+	XML     ParseType = "xml"
+	Unknown ParseType = "unknown"
 )
 
 var (
@@ -50,12 +51,12 @@ type Configer interface {
 }
 
 type Config struct {
-	Name string
+	Name ParseType
 	Path string
 	Load Configer
 }
 
-func NewConfig(name string, path string) *Config {
+func NewConfig(name ParseType, path string) *Config {
 	config := &Config{}
 	if name == "" || path == "" {
 		panic(ErrNameOrPath)
@@ -70,16 +71,16 @@ func NewConfig(name string, path string) *Config {
 
 func (c *Config) Loader() {
 	var err error
-	switch k := strings.ToLower(c.Name); k {
-	case ParseJSON:
-	case ParseYAML:
+	switch k := c.Name; k {
+	case JSON:
+	case YAML:
 		c.Load, err = yaml.LoadFromFile(c.Path)
 		if err != nil {
 			panic(err)
 		}
-	case ParseTOML:
-	case ParseXML:
-	case ParseUnknown:
+	case TOML:
+	case XML:
+	case Unknown:
 		panic(ErrConfigParser)
 	}
 }
