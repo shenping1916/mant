@@ -320,6 +320,7 @@ func (l *Logger) Async(ch <-chan *LoggerMsg) {
 
 			// write byte array
 			l.WriteTo(msg)
+			LoggerMsgPool.Put(msg)
 		}
 		if !ok {
 			var wg sync.WaitGroup
@@ -356,7 +357,12 @@ func (l *Logger) Wrapper(level string, v ...interface{}) {
 
 	msg := fmt.Sprint(v...)
 	_object := LoggerMsgPool.Get().(*LoggerMsg)
-	defer LoggerMsgPool.Put(_object)
+	defer func() {
+		if _object != nil {
+			LoggerMsgPool.Put(_object)
+			_object = nil
+		}
+	}()
 
 	_object.msg = msg
 	_object.level = level
@@ -369,6 +375,9 @@ func (l *Logger) Wrapper(level string, v ...interface{}) {
 	} else {
 		l.WriteTo(_object)
 	}
+
+	LoggerMsgPool.Put(_object)
+	_object = nil
 }
 
 // Wrapperf implements a global formatted log wrapper
@@ -389,7 +398,12 @@ func (l *Logger) Wrapperf(level string, format string, v ...interface{}) {
 
 	msg := fmt.Sprintf(format, v...)
 	_object := LoggerMsgPool.Get().(*LoggerMsg)
-	defer LoggerMsgPool.Put(_object)
+	defer func() {
+		if _object != nil {
+			LoggerMsgPool.Put(_object)
+			_object = nil
+		}
+	}()
 
 	_object.msg = msg
 	_object.level = level
@@ -402,6 +416,9 @@ func (l *Logger) Wrapperf(level string, format string, v ...interface{}) {
 	} else {
 		l.WriteTo(_object)
 	}
+
+	LoggerMsgPool.Put(_object)
+	_object = nil
 }
 
 // Pack method is used to assemble messages, including timestamps,
