@@ -65,7 +65,7 @@ type LoggerMsg struct {
 func NewLogger(depth int, level ...Level) *Logger {
 	logger := new(Logger)
 	logger.linkbreak = logger.SetLinkBeak()
-	logger.calldepth = depth
+	logger.calldepth = 0
 
 	// Initialize byte buffer
 	logger.buf = new(bytes.Buffer)
@@ -73,7 +73,7 @@ func NewLogger(depth int, level ...Level) *Logger {
 	logger.buf.Grow(4096)
 
 	// Initialize Adapter
-	logger.adapter = make([]Adapter, 0)
+	logger.adapter = make([]Adapter, 0, 10)
 
 	// Set log level
 	if len(level) > 0 {
@@ -88,7 +88,7 @@ func NewLogger(depth int, level ...Level) *Logger {
 		logger.SetLevel(LEVELINFO)
 	}
 
-	// Set the log path depth, 3: full path display; 3: short path.
+	// Set the log path depth, 0: full path display.
 	if depth == 3 {
 		logger.SetLonged()
 	}

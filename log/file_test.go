@@ -31,15 +31,15 @@ func BenchmarkNewFileObject(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
 
-	logger := NewLogger(3, LEVELDEBUG)
+	logger := NewLogger(4, LEVELDEBUG)
 	logger.SetFlag()
 	logger.SetColour()
 	logger.SetAsynChronous()
 	logger.SetOutput(FILE, map[string]interface{}{
 		"path":        "/Users/shenping/Project/golang/src/mant/a.log",
-		"rotate":      false,
-		"daily":       false,
-		"compress":    false,
+		"rotate":      true,
+		"daily":       true,
+		"compress":    true,
 		"maxlines":    int64(100),
 		"maxsize":     int64(100),
 		"maxkeepdays": 30,
