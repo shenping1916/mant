@@ -59,18 +59,20 @@ type LoggerMsg struct {
 	time  time.Time
 	msg   string
 	level string
+	path  string
+	line  int
 }
 
 // NewLogger is a constructor that returns a pointer to the Logger instance.
 func NewLogger(depth int, level ...Level) *Logger {
 	logger := new(Logger)
 	logger.linkbreak = logger.SetLinkBeak()
-	logger.calldepth = 0
+	logger.calldepth = depth
 
 	// Initialize byte buffer
 	logger.buf = new(bytes.Buffer)
 	// Preset buffer size to prevent memory redistribution caused by capacity expansion.
-	logger.buf.Grow(4096)
+	logger.buf.Grow(1024)
 
 	// Initialize Adapter
 	logger.adapter = make([]Adapter, 0, 10)
@@ -88,7 +90,7 @@ func NewLogger(depth int, level ...Level) *Logger {
 		logger.SetLevel(LEVELINFO)
 	}
 
-	// Set the log path depth, 0: full path display.
+	// Set the log path depth, 3: full path display; 4: short path.
 	if depth == 3 {
 		logger.SetLonged()
 	}
@@ -318,7 +320,6 @@ func (l *Logger) Async(ch <-chan *LoggerMsg) {
 
 			// write byte array
 			l.WriteTo(msg)
-			LoggerMsgPool.Put(msg)
 		}
 		if !ok {
 			var wg sync.WaitGroup
@@ -344,18 +345,29 @@ func (l *Logger) Async(ch <-chan *LoggerMsg) {
 // to the asynchronous queue, otherwise it will be passed
 // directly to the log writers.
 func (l *Logger) Wrapper(level string, v ...interface{}) {
+	// full path/short path + line number
+	abs, line := l.CallDepth()
+	var f string
+	if l.longed {
+		f = abs
+	} else {
+		_, f = path.Split(abs)
+	}
+
 	msg := fmt.Sprint(v...)
 	_object := LoggerMsgPool.Get().(*LoggerMsg)
-
 	_object.msg = msg
 	_object.level = level
 	_object.time = time.Now()
+	_object.path = f
+	_object.line = line
 
 	if l.async {
 		l.asynch <- _object
 	} else {
 		l.WriteTo(_object)
 	}
+	LoggerMsgPool.Put(_object)
 }
 
 // Wrapperf implements a global formatted log wrapper
@@ -365,26 +377,6 @@ func (l *Logger) Wrapper(level string, v ...interface{}) {
 // to the asynchronous queue, otherwise it will be passed
 // directly to the log writers.
 func (l *Logger) Wrapperf(level string, format string, v ...interface{}) {
-	msg := fmt.Sprintf(format, v...)
-	_object := LoggerMsgPool.Get().(*LoggerMsg)
-
-	_object.msg = msg
-	_object.level = level
-	_object.time = time.Now()
-
-	if l.async {
-		l.asynch <- _object
-	} else {
-		l.WriteTo(_object)
-	}
-}
-
-// Pack method is used to assemble messages, including timestamps,
-// log levels, message bodies, log lines (based on log depth), and
-// finally return byte arrays.
-func (l *Logger) Pack(logMsg *LoggerMsg) []byte {
-	l.buf.Reset()
-
 	// full path/short path + line number
 	abs, line := l.CallDepth()
 	var f string
@@ -393,6 +385,29 @@ func (l *Logger) Pack(logMsg *LoggerMsg) []byte {
 	} else {
 		_, f = path.Split(abs)
 	}
+
+	msg := fmt.Sprintf(format, v...)
+	_object := LoggerMsgPool.Get().(*LoggerMsg)
+	_object.msg = msg
+	_object.level = level
+	_object.time = time.Now()
+	_object.path = f
+	_object.line = line
+
+	if l.async {
+		l.asynch <- _object
+	} else {
+		l.WriteTo(_object)
+	}
+
+	LoggerMsgPool.Put(_object)
+}
+
+// Pack method is used to assemble messages, including timestamps,
+// log levels, message bodies, log lines (based on log depth), and
+// finally return byte arrays.
+func (l *Logger) Pack(logMsg *LoggerMsg) []byte {
+	l.buf.Reset()
 
 	if l.colourful == nil {
 		l.format(logMsg.level, logMsg.time)
@@ -408,9 +423,9 @@ func (l *Logger) Pack(logMsg *LoggerMsg) []byte {
 		l.buf.WriteString(" ")
 
 		// log path(calldepth) && line number
-		l.buf.WriteString(f)
+		l.buf.WriteString(logMsg.path)
 		l.buf.WriteString(":")
-		l.buf.WriteString(strconv.Itoa(line))
+		l.buf.WriteString(strconv.Itoa(logMsg.line))
 	} else {
 		l.formatColour(logMsg.level, logMsg.time)
 
@@ -426,9 +441,9 @@ func (l *Logger) Pack(logMsg *LoggerMsg) []byte {
 		l.buf.WriteString(" ")
 
 		// log path(calldepth) && line number
-		l.ColourAuxiliary(FgPurple, f)
+		l.ColourAuxiliary(FgPurple, logMsg.path)
 		l.ColourAuxiliary(FgPurple, ":")
-		l.ColourAuxiliary(FgPurple, strconv.Itoa(line))
+		l.ColourAuxiliary(FgPurple, strconv.Itoa(logMsg.line))
 	}
 
 	// write linkbreak

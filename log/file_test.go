@@ -5,7 +5,7 @@ import (
 )
 
 func TestNewFileObject(t *testing.T) {
-	logger := NewLogger(2, LEVELDEBUG)
+	logger := NewLogger(4, LEVELDEBUG)
 	logger.SetFlag()
 	logger.SetColour()
 	logger.SetAsynChronous()
@@ -19,7 +19,7 @@ func TestNewFileObject(t *testing.T) {
 		"maxkeepdays": 30,
 	})
 
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < 1; i++ {
 		logger.Info(i)
 		logger.Infof("infof: %d", i)
 	}
