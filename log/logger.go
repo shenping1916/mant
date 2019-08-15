@@ -356,6 +356,8 @@ func (l *Logger) Wrapper(level string, v ...interface{}) {
 
 	msg := fmt.Sprint(v...)
 	_object := LoggerMsgPool.Get().(*LoggerMsg)
+	defer LoggerMsgPool.Put(_object)
+
 	_object.msg = msg
 	_object.level = level
 	_object.time = time.Now()
@@ -367,7 +369,6 @@ func (l *Logger) Wrapper(level string, v ...interface{}) {
 	} else {
 		l.WriteTo(_object)
 	}
-	LoggerMsgPool.Put(_object)
 }
 
 // Wrapperf implements a global formatted log wrapper
@@ -388,6 +389,8 @@ func (l *Logger) Wrapperf(level string, format string, v ...interface{}) {
 
 	msg := fmt.Sprintf(format, v...)
 	_object := LoggerMsgPool.Get().(*LoggerMsg)
+	defer LoggerMsgPool.Put(_object)
+
 	_object.msg = msg
 	_object.level = level
 	_object.time = time.Now()
@@ -399,8 +402,6 @@ func (l *Logger) Wrapperf(level string, format string, v ...interface{}) {
 	} else {
 		l.WriteTo(_object)
 	}
-
-	LoggerMsgPool.Put(_object)
 }
 
 // Pack method is used to assemble messages, including timestamps,
