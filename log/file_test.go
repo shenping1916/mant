@@ -19,7 +19,7 @@ func TestNewFileObject(t *testing.T) {
 		"maxkeepdays": 30,
 	})
 
-	for i := 0; i < 1; i++ {
+	for i := 0; i < 1000; i++ {
 		logger.Info(i)
 		logger.Infof("infof: %d", i)
 	}
@@ -48,19 +48,19 @@ func BenchmarkNewFileObject(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		b.StartTimer()
 		logger.Debug("debug")
-		logger.Debugf("debugf: %d", 1)
+		logger.Debugf("debugf: %s", "debuf")
 
 		logger.Info("info")
-		logger.Infof("infof: %d", 2)
+		logger.Infof("infof: %s", "infof")
 
 		logger.Warn("warn")
-		logger.Warnf("warnf: %d", 3)
+		logger.Warnf("warnf: %s", "warnf")
 
 		logger.Error("error")
-		logger.Errorf("errorf: %d", 3)
+		logger.Errorf("errorf: %s", "errorf")
 
 		logger.Fatal("fatal")
-		logger.Fatalf("fatalf: %d", 4)
+		logger.Fatalf("fatalf: %s", "fatalf")
 		b.StopTimer()
 	}
 

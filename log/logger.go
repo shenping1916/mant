@@ -67,7 +67,7 @@ type LoggerMsg struct {
 func NewLogger(depth int, level ...Level) *Logger {
 	logger := new(Logger)
 	logger.linkbreak = logger.SetLinkBeak()
-	logger.calldepth = depth
+	logger.calldepth = 3
 
 	// Initialize byte buffer
 	logger.buf = new(bytes.Buffer)
@@ -319,9 +319,10 @@ func (l *Logger) Async(ch <-chan *LoggerMsg) {
 			}
 
 			// write byte array
-			l.WriteTo(msg)
+			l.WriteTo(msg.level, msg.path, msg.msg, msg.line, msg.time)
 			LoggerMsgPool.Put(msg)
 		}
+
 		if !ok {
 			var wg sync.WaitGroup
 			wg.Add(1)
@@ -348,6 +349,7 @@ func (l *Logger) Async(ch <-chan *LoggerMsg) {
 func (l *Logger) Wrapper(level string, v ...interface{}) {
 	// full path/short path + line number
 	abs, line := l.CallDepth()
+
 	var f string
 	if l.longed {
 		f = abs
@@ -356,28 +358,18 @@ func (l *Logger) Wrapper(level string, v ...interface{}) {
 	}
 
 	msg := fmt.Sprint(v...)
-	_object := LoggerMsgPool.Get().(*LoggerMsg)
-	defer func() {
-		if _object != nil {
-			LoggerMsgPool.Put(_object)
-			_object = nil
-		}
-	}()
-
-	_object.msg = msg
-	_object.level = level
-	_object.time = time.Now()
-	_object.path = f
-	_object.line = line
-
 	if l.async {
+		_object := LoggerMsgPool.Get().(*LoggerMsg)
+		_object.time = time.Now()
+		_object.msg = msg
+		_object.level = level
+		_object.path = f
+		_object.line = line
+
 		l.asynch <- _object
 	} else {
-		l.WriteTo(_object)
+		l.WriteTo(level, f, msg, line, time.Now())
 	}
-
-	LoggerMsgPool.Put(_object)
-	_object = nil
 }
 
 // Wrapperf implements a global formatted log wrapper
@@ -389,6 +381,7 @@ func (l *Logger) Wrapper(level string, v ...interface{}) {
 func (l *Logger) Wrapperf(level string, format string, v ...interface{}) {
 	// full path/short path + line number
 	abs, line := l.CallDepth()
+
 	var f string
 	if l.longed {
 		f = abs
@@ -397,71 +390,61 @@ func (l *Logger) Wrapperf(level string, format string, v ...interface{}) {
 	}
 
 	msg := fmt.Sprintf(format, v...)
-	_object := LoggerMsgPool.Get().(*LoggerMsg)
-	defer func() {
-		if _object != nil {
-			LoggerMsgPool.Put(_object)
-			_object = nil
-		}
-	}()
-
-	_object.msg = msg
-	_object.level = level
-	_object.time = time.Now()
-	_object.path = f
-	_object.line = line
-
 	if l.async {
+		_object := LoggerMsgPool.Get().(*LoggerMsg)
+		_object.time = time.Now()
+		_object.msg = msg
+		_object.level = level
+		_object.path = f
+		_object.line = line
+
 		l.asynch <- _object
 	} else {
-		l.WriteTo(_object)
+		l.WriteTo(level, f, msg, line, time.Now())
 	}
-
-	LoggerMsgPool.Put(_object)
-	_object = nil
 }
 
 // Pack method is used to assemble messages, including timestamps,
 // log levels, message bodies, log lines (based on log depth), and
 // finally return byte arrays.
-func (l *Logger) Pack(logMsg *LoggerMsg) []byte {
+func (l *Logger) Pack(level, path, msg string, line int, time time.Time) []byte {
 	l.buf.Reset()
 
 	if l.colourful == nil {
-		l.format(logMsg.level, logMsg.time)
+		l.format(level, time)
 
 		// log level
 		l.buf.WriteString("[")
-		l.buf.WriteString(logMsg.level)
+		l.buf.WriteString(level)
 		l.buf.WriteString("]")
 		l.buf.WriteString(" ")
 
 		// write msg
-		l.buf.WriteString(logMsg.msg)
+		l.buf.WriteString(msg)
 		l.buf.WriteString(" ")
 
 		// log path(calldepth) && line number
-		l.buf.WriteString(logMsg.path)
+		l.buf.WriteString(path)
 		l.buf.WriteString(":")
-		l.buf.WriteString(strconv.Itoa(logMsg.line))
+		l.buf.WriteString(strconv.Itoa(line))
 	} else {
-		l.formatColour(logMsg.level, logMsg.time)
+		l.formatColour(level, time)
 
 		// log level
-		bgColour := l.colourful.ColourForeGround(logMsg.level)
+		bgColour := l.colourful.ColourForeGround(level)
 		l.ColourAuxiliary(bgColour, "[")
-		l.ColourAuxiliary(bgColour, logMsg.level)
+		l.ColourAuxiliary(bgColour, level)
 		l.ColourAuxiliary(bgColour, "]")
 		l.buf.WriteString(" ")
 
 		// write msg
-		l.ColourAuxiliary(FgWhite, logMsg.msg)
+		l.ColourAuxiliary(FgWhite, msg)
 		l.buf.WriteString(" ")
 
 		// log path(calldepth) && line number
-		l.ColourAuxiliary(FgPurple, logMsg.path)
+		l.ColourAuxiliary(FgPurple, path)
 		l.ColourAuxiliary(FgPurple, ":")
-		l.ColourAuxiliary(FgPurple, strconv.Itoa(logMsg.line))
+		l.ColourAuxiliary(FgPurple, strconv.Itoa(line))
 	}
 
 	// write linkbreak
@@ -485,15 +468,12 @@ func (l *Logger) CallDepth() (file string, line int) {
 // WriteTo is the globally unique log output point that iterates
 // over all adapters that implement the Writer interface, calling
 // their Writing method to write all assembled log bytes.
-func (l *Logger) WriteTo(logMsg *LoggerMsg) {
+func (l *Logger) WriteTo(level, path, msg string, line int, time time.Time) {
 	if len(l.adapter) == 0 {
 		return
 	}
-	if logMsg == nil {
-		return
-	}
 
-	p := l.Pack(logMsg)
+	p := l.Pack(level, path, msg, line, time)
 	for _, v := range l.adapter {
 		if err := v.Writing(p); err != nil {
 			fmt.Fprintln(os.Stderr, "An error occurred while writing! err: ", err)
