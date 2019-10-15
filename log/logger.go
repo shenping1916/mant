@@ -30,19 +30,20 @@ type Level uint
 // Logs can be written to any destination that implements the io.writer
 // method, supporting both synchronous and asynchronous methods.
 type Logger struct {
-	mu        sync.Mutex
-	level     Level
-	prefix    string
-	linkbreak string
-	calldepth int
-	colourful colourwrapper
-	buf       *bytes.Buffer
-	adapter   []Adapter
-	flag      bool
-	longed    bool
-	async     bool
-	asynch    chan *LoggerMsg
-	asynstop  chan struct{}
+	mu           sync.Mutex
+	level        Level
+	prefix       string
+	linkbreak    string
+	calldepth    int
+	colourful    colourwrapper
+	buf          *bytes.Buffer
+	adapter      []Adapter
+	flag         bool
+	isAbsPath    bool
+	isAsync      bool
+	asynchClose  bool
+	asynch       chan *LoggerMsg
+	asynstop     chan struct{}
 }
 
 // LoggerMsgPool temporary object, avoiding repeated initialization of
@@ -72,7 +73,7 @@ func NewLogger(depth int, level ...Level) *Logger {
 	// Initialize byte buffer
 	logger.buf = new(bytes.Buffer)
 	// Preset buffer size to prevent memory redistribution caused by capacity expansion.
-	logger.buf.Grow(1024)
+	logger.buf.Grow(2048)
 
 	// Initialize Adapter
 	logger.adapter = make([]Adapter, 0, 10)
@@ -92,7 +93,7 @@ func NewLogger(depth int, level ...Level) *Logger {
 
 	// Set the log path depth, 3: full path display; 4: short path.
 	if depth == 3 {
-		logger.SetLonged()
+		logger.SetAbsPath()
 	}
 
 	return logger
@@ -149,24 +150,24 @@ func (l *Logger) SetFlag() {
 	l.flag = true
 }
 
-// SetLonged is used to set the file path. If set to true,
+// SetAbsPath is used to set the absolute file path. If set to true,
 // the absolute path is displayed, for example: a/b/c/d.go;
 // if false, the short path is displayed, for example: d.go.
 // The default is false.
-func (l *Logger) SetLonged() {
+func (l *Logger) SetAbsPath() {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	l.longed = true
+	l.isAbsPath = true
 }
 
 // SetAsynChronous sets the log mode to asynchronous.
 func (l *Logger) SetAsynChronous(msgLen ...int) {
-	if l.async {
+	if l.isAsync {
 		return
 	}
 
-	l.async = true
+	l.isAsync = true
 	if len(msgLen) == 0 {
 		l.asynch = make(chan *LoggerMsg, defaultchanlength)
 	} else {
@@ -308,34 +309,29 @@ func (l *Logger) LevelString() []string {
 
 // Async provides asynchronous write of logs, implemented by chan.
 func (l *Logger) Async(ch <-chan *LoggerMsg) {
-	var msg *LoggerMsg
-	ok := true
-
 	for {
 		select {
-		case msg, ok = <-ch:
+		case msg, ok := <-ch:
 			if !ok {
-				break
+				return
 			}
 
 			// write byte array
 			l.WriteTo(msg.level, msg.path, msg.msg, msg.line, msg.time)
 			LoggerMsgPool.Put(msg)
-		}
-
-		if !ok {
+		case <- l.asynstop:
 			var wg sync.WaitGroup
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				for _, v := range l.adapter {
+			for _, v := range l.adapter {
+				wg.Add(1)
+				go func(wg *sync.WaitGroup, v Adapter) {
+					defer wg.Done()
+					defer v.Close()
 					v.Flush()
-				}
-			}()
+				}(&wg, v)
+			}
 			wg.Wait()
 
-			l.asynstop <- struct{}{}
-			break
+
 		}
 	}
 }
@@ -351,14 +347,14 @@ func (l *Logger) Wrapper(level string, v ...interface{}) {
 	abs, line := l.CallDepth()
 
 	var f string
-	if l.longed {
+	if l.isAbsPath {
 		f = abs
 	} else {
 		_, f = path.Split(abs)
 	}
 
 	msg := fmt.Sprint(v...)
-	if l.async {
+	if l.isAsync && l.asynchClose {
 		_object := LoggerMsgPool.Get().(*LoggerMsg)
 		_object.time = time.Now()
 		_object.msg = msg
@@ -383,14 +379,14 @@ func (l *Logger) Wrapperf(level string, format string, v ...interface{}) {
 	abs, line := l.CallDepth()
 
 	var f string
-	if l.longed {
+	if l.isAbsPath {
 		f = abs
 	} else {
 		_, f = path.Split(abs)
 	}
 
 	msg := fmt.Sprintf(format, v...)
-	if l.async {
+	if l.isAsync && l.asynchClose {
 		_object := LoggerMsgPool.Get().(*LoggerMsg)
 		_object.time = time.Now()
 		_object.msg = msg
@@ -485,9 +481,11 @@ func (l *Logger) WriteTo(level, path, msg string, line int, time time.Time) {
 // 1. Asynchronous channel;
 // 2. Each Writes (adapter that implements the interface of Writer).
 func (l *Logger) Close() {
-	if l.async {
-		close(l.asynch)
-		<-l.asynstop
+	if l.isAsync {
+		defer close(l.asynch)
+		l.asynchClose = true
+		l.asynstop <- struct{}{}
+		return
 	}
 
 	for _, v := range l.adapter {
