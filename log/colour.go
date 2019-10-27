@@ -1,6 +1,8 @@
 package log
 
-import "bytes"
+import (
+	"bytes"
+)
 
 const capital = "\x1b"
 
@@ -9,31 +11,43 @@ var (
 	FgRed       = "31"
 	FgGreen     = "32"
 	FgYellow    = "33"
-	FgBule      = "34"
+	FgBlue      = "34"
 	FgPurple    = "35"
 	FgDarkGreen = "36"
 	FgWhite     = "37"
 )
 
 var (
+	FgBlackHead     = [5]byte{27,91,51,48,109}
+	FgRedHead       = [5]byte{27,91,51,49,109}
+	FgGreenHead     = [5]byte{27,91,51,50,109}
+	FgYellowHead    = [5]byte{27,91,51,51,109}
+	FgBlueHead      = [5]byte{27,91,51,52,109}
+	FgPurpleHead    = [5]byte{27,91,51,53,109}
+	FgDarkGreenHead = [5]byte{27,91,51,54,109}
+	FgWhiteHead     = [5]byte{27,91,51,55,109}
+)
+
+var Tail = [4]byte{27,91,48,109}
+
+var (
 	BgBlack     = "40"
 	BgRed       = "41"
 	BgGreen     = "42"
 	BgYellow    = "43"
-	BgBule      = "44"
+	BgBlue      = "44"
 	BgPurple    = "45"
 	BgDarkGreen = "46"
 	BgWhite     = "47"
 )
 
 type colourwrapper interface {
-	// color formatted output
 	ColourOutPut(*bytes.Buffer, string, string)
 
-	// setting the foreground color
-	ColourForeGround(string) string
+	ColourHead(*bytes.Buffer, string)
+	ColourTail(*bytes.Buffer)
 
-	// Set the background color
+	ColourForeGround(string) string
 	ColourBackGround() string
 }
 
@@ -55,7 +69,7 @@ func NewColour() *Colour {
 // finally splicing all the contents and returning.
 func (c *Colour) ColourOutPut(buf *bytes.Buffer, fg string, msg string) {
 	buf.WriteString(c.capital)
-	buf.WriteString("[0;")
+	buf.WriteString("[0")
 	buf.WriteString(fg)
 	buf.WriteString("m")
 
@@ -64,12 +78,41 @@ func (c *Colour) ColourOutPut(buf *bytes.Buffer, fg string, msg string) {
 	buf.WriteString("[0m")
 }
 
+// ColourHead method writes a corresponding array of 5 bytes in
+// the byte buffer according to the incoming foreground color in
+// the header.
+func (c *Colour) ColourHead(buf *bytes.Buffer, fg string) {
+	switch fg {
+	case FgBlack:
+		buf.Write(FgBlackHead[:])
+	case FgRed:
+		buf.Write(FgRedHead[:])
+	case FgGreen:
+		buf.Write(FgGreenHead[:])
+	case FgYellow:
+		buf.Write(FgYellowHead[:])
+	case FgBlue:
+		buf.Write(FgBlueHead[:])
+	case FgPurple:
+		buf.Write(FgPurpleHead[:])
+	case FgDarkGreen:
+		buf.Write(FgDarkGreenHead[:])
+	case FgWhite:
+		buf.Write(FgWhiteHead[:])
+	}
+}
+
+// ColourTail method writes a fixed array of 4 bytes at the end.
+func (c *Colour) ColourTail(buf *bytes.Buffer) {
+	buf.Write(Tail[:])
+}
+
 // ColourForeGround sets the corresponding foreground color
 // according to the log level.
 func (c *Colour) ColourForeGround(level string) string {
 	switch level {
 	case "debug", "DEBUG":
-		return FgBule
+		return FgBlue
 	case "info", "INFO":
 		return FgDarkGreen
 	case "warn", "WARN":
@@ -93,5 +136,15 @@ func (c *Colour) ColourBackGround() string {
 // ColourBackGround sets the log background color, unified
 // to black.
 func (l *Logger) ColourAuxiliary(fg string, msg string) {
-	l.colourful.ColourOutPut(l.buf, fg, msg)
+	buf := l.buf
+	l.colourful.ColourOutPut(buf, fg, msg)
+}
+
+// ColourAuxiliaryTime sets the year/month/day
+// hour:minute:second.millisecond color line.
+func (l *Logger) ColourAuxiliaryTime(fg string, t, w int) {
+	buf := l.buf
+	l.colourful.ColourHead(buf, fg)
+	l.itoa(t, w)
+	l.colourful.ColourTail(buf)
 }

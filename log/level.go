@@ -147,3 +147,34 @@ func (l *Logger) Fatalf(format string, v ...interface{}) {
 		}
 	}
 }
+
+//////////////////////////////////////////////////////////////////////////////
+/*
+Extend
+ */
+// Print is to implement the gorm logger interface, so that the framework's
+// log package is compatible with the gorm sql output.
+func (l *Logger) Print(v ...interface{}) {
+	levelString := l.String(LEVELDEBUG)
+	if levelString != "" {
+		l.Wrapper(levelString, LogFormatGorm(v...)...)
+	}
+}
+
+// Printf method is to adapt the log print of rabbitmq
+func (l *Logger) Printf(format string, v ...interface{}) {
+	levelString := l.String(LEVELDEBUG)
+	if levelString != "" {
+		l.Wrapperf(levelString, format, v...)
+	}
+}
+
+// Println method is to adapt the log print of rabbitmq
+func (l *Logger) Println(v ...interface{}) {
+	levelString := l.String(LEVELDEBUG)
+	if levelString != "" {
+		l.Wrapper(levelString, v...)
+	}
+}
+
+

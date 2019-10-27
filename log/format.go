@@ -28,41 +28,43 @@ func (l *Logger) itoa(i int, wid int) {
 	l.buf.Write(b[bp:])
 }
 
-// Cheap integer to fixed-width decimal ASCII. Give a negative width to avoid zero-padding.
-// just for colour
-func (l *Logger) itoaColour(i int, wid int) {
-	// Assemble decimal in reverse order.
-	var b [24]byte
-	bp := len(b) - 1
-	tail := []byte{'m', '0', '['}
-	for _, s := range tail {
-		b[bp] = s
-		bp--
-	}
-	b[bp] = byte(27) // hex: 1b  ==> \x1b
-	bp--
+//// Cheap integer to fixed-width decimal ASCII. Give a negative width to avoid zero-padding.
+//// just for colour
+//func (l *Logger) itoaColour(i int, wid int) {
+//	// Assemble decimal in reverse order.
+//	var b [24]byte
+//	bp := len(b) - 1
+//	tail := []byte{'m', '0', '['}
+//	for _, s := range tail {
+//		b[bp] = s
+//		bp--
+//	}
+//	b[bp] = byte(27) // hex: 1b  ==> \x1b
+//	bp--
+//
+//	for i >= 10 || wid > 1 {
+//		wid--
+//		q := i / 10
+//		b[bp] = byte('0' + i - q*10)
+//		bp--
+//		i = q
+//	}
+//	// i < 10
+//	b[bp] = byte('0' + i)
+//	bp--
+//
+//	head := []byte{'m', '3', '3', ';', '0', '['}
+//	for _, s := range head {
+//		b[bp] = s
+//		bp--
+//	}
+//	b[bp] = byte(27) // hex: 1b ==> \x1b
+//
+//	// write to bytes buf
+//	l.buf.Write(b[bp:])
+//}
 
-	for i >= 10 || wid > 1 {
-		wid--
-		q := i / 10
-		b[bp] = byte('0' + i - q*10)
-		bp--
-		i = q
-	}
-	// i < 10
-	b[bp] = byte('0' + i)
-	bp--
 
-	head := []byte{'m', '3', '3', ';', '0', '['}
-	for _, s := range head {
-		b[bp] = s
-		bp--
-	}
-	b[bp] = byte(27) // hex: 1b ==> \x1b
-
-	// write to bytes buf
-	l.buf.Write(b[bp:])
-}
 
 // Format is used to format the log header, including: log prefix (if any), date (year/month/day),
 // time (hour: minute: second), host name.
@@ -141,26 +143,24 @@ func (l *Logger) formatColour(level string, cTime time.Time) {
 	// ************************************
 	// year、month、day
 	year, month, day := cTime.Date()
+	l.ColourAuxiliaryTime(FgGreen, year, 4)
+	l.ColourAuxiliary(FgGreen, "/")
+	l.ColourAuxiliaryTime(FgGreen, int(month), 2)
+	l.ColourAuxiliary(FgGreen, "/")
+	l.ColourAuxiliaryTime(FgGreen, day, 2)
+	l.buf.WriteString(" ")
+	// ************************************
 
 	// ************************************
 	// hour、minute、second、nanosecond
 	hour, minute, second := cTime.Clock()
-
-	l.itoaColour(year, 4)
-	l.ColourAuxiliary(FgYellow, "/")
-	l.itoaColour(int(month), 2)
-	l.ColourAuxiliary(FgYellow, "/")
-	l.itoaColour(day, 2)
-	l.buf.WriteString(" ")
-	// ************************************
-
-	l.itoaColour(hour, 2)
-	l.ColourAuxiliary(FgYellow, ":")
-	l.itoaColour(minute, 2)
-	l.ColourAuxiliary(FgYellow, ":")
-	l.itoaColour(second, 2)
-	l.ColourAuxiliary(FgYellow, ":")
-	l.itoaColour(cTime.Nanosecond()/1e3, 6)
+	l.ColourAuxiliaryTime(FgGreen, hour, 2)
+	l.ColourAuxiliary(FgGreen, ":")
+	l.ColourAuxiliaryTime(FgGreen, minute, 2)
+	l.ColourAuxiliary(FgGreen, ":")
+	l.ColourAuxiliaryTime(FgGreen, second, 2)
+	l.ColourAuxiliary(FgGreen, ":")
+	l.ColourAuxiliaryTime(FgGreen, cTime.Nanosecond()/1e3, 6)
 	l.buf.WriteString(" ")
 	// ************************************
 

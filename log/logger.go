@@ -73,7 +73,7 @@ func NewLogger(depth int, level ...Level) *Logger {
 	// Initialize byte buffer
 	logger.buf = new(bytes.Buffer)
 	// Preset buffer size to prevent memory redistribution caused by capacity expansion.
-	logger.buf.Grow(2048)
+	logger.buf.Grow(4096)
 
 	// Initialize Adapter
 	logger.adapter = make([]Adapter, 0, 10)
