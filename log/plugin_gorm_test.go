@@ -59,7 +59,7 @@ func TestLogFormatGorm(t *testing.T) {
 	var user User
 	err := db.Model(&user).Find(&user).Error
 	if err != nil {
-		panic(err)
+		t.Error(err.Error())
 	}
 
 	t.Log(user)

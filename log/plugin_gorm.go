@@ -12,9 +12,13 @@ func LogFormatGorm(values ...interface{}) []interface{}{
 
 	if level == "sql" {
 		sql := values[3].(string)
+		fmt.Println("+++++++++++++++")
 		fmt.Println(sql, level, source)
+		fmt.Println("+++++++++++++++")
 	} else {
+		fmt.Println("---------------")
 		fmt.Println(values...)
+		fmt.Println("---------------")
 	}
 
 	return []interface{}{}
