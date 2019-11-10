@@ -3,6 +3,7 @@ package log
 import (
 	"bytes"
 	"fmt"
+	"mant/core/base"
 	"os"
 	"path"
 	"runtime"
@@ -315,8 +316,10 @@ func (l *Logger) Async(ch <-chan *LoggerMsg) {
 			}
 
 			// write byte array
-			l.WriteTo(msg.level, msg.path, msg.msg, msg.line, msg.time)
-			LoggerMsgPool.Put(msg)
+			if msg != nil {
+				l.WriteTo(msg.level, msg.path, msg.msg, msg.line, msg.time)
+				LoggerMsgPool.Put(msg)
+			}
 		case <- l.asynstop:
 			var wg sync.WaitGroup
 			for _, v := range l.adapter {
@@ -444,7 +447,10 @@ func (l *Logger) Pack(level, path, msg string, line int, time time.Time) []byte 
 	// write linkbreak
 	l.buf.WriteString(l.linkbreak)
 
-	return l.buf.Bytes()
+	// return bytes
+	out := l.buf.String()
+	b := base.StringToBytes(out)
+	return b
 }
 
 // CallDepth gets the file name (short path/full path) and line

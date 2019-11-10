@@ -33,8 +33,9 @@ func BenchmarkNewFileObject(b *testing.B) {
 
 	logger := NewLogger(4, LEVELDEBUG)
 	logger.SetFlag()
-	logger.SetColour()
+	//logger.SetColour()
 	logger.SetAsynChronous()
+	logger.SetOutput(CONSOLE, nil)
 	logger.SetOutput(FILE, map[string]interface{}{
 		"path":        "/Users/shenping/Project/golang/src/mant/a.log",
 		"rotate":      true,
