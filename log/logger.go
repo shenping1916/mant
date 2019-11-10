@@ -467,10 +467,11 @@ func (l *Logger) WriteTo(level, path, msg string, line int, time time.Time) {
 		return
 	}
 
-	p := l.Pack(level, path, msg, line, time)
-	for _, v := range l.adapter {
-		if err := v.Writing(p); err != nil {
-			fmt.Fprintln(os.Stderr, "An error occurred while writing! err: ", err)
+	if p := l.Pack(level, path, msg, line, time); len(p) > 0 {
+		for _, v := range l.adapter {
+			if err := v.Writing(p); err != nil {
+				fmt.Fprintln(os.Stderr, "An error occurred while writing! err: ", err)
+			}
 		}
 	}
 }
