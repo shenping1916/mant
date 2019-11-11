@@ -27,12 +27,12 @@ func (c *ConsoleObject) Writing(p []byte) error {
 	}
 
 	c.mu.Lock()
+	defer c.mu.Unlock()
 	pIndex := p[2:]
 	_, err := c.w.Write(pIndex)
 	if err != nil {
 		return err
 	}
-	c.mu.Unlock()
 
 	return nil
 }

@@ -3,7 +3,6 @@ package log
 import (
 	"bytes"
 	"fmt"
-	"mant/core/base"
 	"os"
 	"path"
 	"runtime"
@@ -405,8 +404,6 @@ func (l *Logger) Wrapperf(level string, format string, v ...interface{}) {
 // log levels, message bodies, log lines (based on log depth), and
 // finally return byte arrays.
 func (l *Logger) Pack(level, path, msg string, line int, time time.Time) []byte {
-	l.buf.Reset()
-
 	if l.colourful == nil {
 		l.format(level, time)
 
@@ -447,9 +444,7 @@ func (l *Logger) Pack(level, path, msg string, line int, time time.Time) []byte 
 	// write linkbreak
 	l.buf.WriteString(l.linkbreak)
 
-	// return bytes
-	out := l.buf.String()
-	b := base.StringToBytes(out)
+	b := l.buf.Bytes()
 	return b
 }
 
@@ -473,7 +468,7 @@ func (l *Logger) WriteTo(level, path, msg string, line int, time time.Time) {
 		return
 	}
 
-	if p := l.Pack(level, path, msg, line, time); len(p) > 0 {
+	if p := l.Pack(level, path, msg, line, time); len(p) > 3 {
 		for _, v := range l.adapter {
 			if err := v.Writing(p); err != nil {
 				fmt.Fprintln(os.Stderr, "An error occurred while writing! err: ", err)
