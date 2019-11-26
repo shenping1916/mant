@@ -72,6 +72,8 @@ func NewLogger(depth int, level ...Level) *Logger {
 
 	// Initialize byte buffer
 	logger.buf = new(bytes.Buffer)
+	// Preset buffer size to prevent memory redistribution caused by capacity expansion.
+	logger.buf.Grow(2048)
 
 	// Initialize Adapter
 	logger.adapter = make([]Adapter, 0, 10)
@@ -354,7 +356,7 @@ func (l *Logger) Wrapper(level string, v ...interface{}) {
 	}
 
 	msg := fmt.Sprint(v...)
-	if l.isAsync && l.asynchClose {
+	if l.isAsync && l.asynchClose == false {
 		_object := LoggerMsgPool.Get().(*LoggerMsg)
 		_object.time = time.Now()
 		_object.msg = msg
@@ -386,7 +388,7 @@ func (l *Logger) Wrapperf(level string, format string, v ...interface{}) {
 	}
 
 	msg := fmt.Sprintf(format, v...)
-	if l.isAsync && l.asynchClose {
+	if l.isAsync && l.asynchClose == false {
 		_object := LoggerMsgPool.Get().(*LoggerMsg)
 		_object.time = time.Now()
 		_object.msg = msg
@@ -468,7 +470,7 @@ func (l *Logger) WriteTo(level, path, msg string, line int, time time.Time) {
 		return
 	}
 
-	if p := l.Pack(level, path, msg, line, time); len(p) > 3 {
+	if p := l.Pack(level, path, msg, line, time); len(p) > 0 {
 		for _, v := range l.adapter {
 			if err := v.Writing(p); err != nil {
 				fmt.Fprintln(os.Stderr, "An error occurred while writing! err: ", err)
