@@ -157,23 +157,7 @@ Extend
 func (l *Logger) Print(v ...interface{}) {
 	levelString := l.String(LEVELDEBUG)
 	if levelString != "" {
-		l.Wrapper(levelString, LogFormatGorm(v...)...)
-	}
-}
-
-// Printf method is to adapt the log print of rabbitmq
-func (l *Logger) Printf(format string, v ...interface{}) {
-	levelString := l.String(LEVELDEBUG)
-	if levelString != "" {
-		l.Wrapperf(levelString, format, v...)
-	}
-}
-
-// Println method is to adapt the log print of rabbitmq
-func (l *Logger) Println(v ...interface{}) {
-	levelString := l.String(LEVELDEBUG)
-	if levelString != "" {
-		l.Wrapper(levelString, v...)
+		l.WrapperGorm(levelString, v...)
 	}
 }
 

@@ -317,10 +317,8 @@ func (l *Logger) Async(ch <-chan *LoggerMsg) {
 			}
 
 			// write byte array
-			if msg != nil {
-				l.WriteTo(msg.level, msg.path, msg.msg, msg.line, msg.time)
-				LoggerMsgPool.Put(msg)
-			}
+			l.WriteTo(msg.level, msg.path, msg.msg, msg.line, msg.time)
+			LoggerMsgPool.Put(msg)
 		case <- l.asynstop:
 			var wg sync.WaitGroup
 			for _, v := range l.adapter {
@@ -332,8 +330,6 @@ func (l *Logger) Async(ch <-chan *LoggerMsg) {
 				}(&wg, v)
 			}
 			wg.Wait()
-
-
 		}
 	}
 }
@@ -485,6 +481,7 @@ func (l *Logger) WriteTo(level, path, msg string, line int, time time.Time) {
 func (l *Logger) Close() {
 	if l.isAsync {
 		defer close(l.asynch)
+
 		l.asynchClose = true
 		l.asynstop <- struct{}{}
 		return
